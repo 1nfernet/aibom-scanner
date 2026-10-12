@@ -1,4 +1,4 @@
-"""Map findings to compliance framework controls (NIST AI RMF, ISO 42001, EU AI Act)."""
+"""Map findings to compliance framework controls (NIST AI RMF, ISO 42001, EU AI Act, OWASP LLM and Agentic Top 10)."""
 
 from aibom_scanner.models import ControlMapping, CoverageStatus
 
@@ -63,10 +63,40 @@ EU_AI_ACT = {
     "EU-AI-ACT-ART-52": ("Article 52", "Transparency obligations for AI-generated content"),
 }
 
+# OWASP Top 10 for LLM Applications (2025). Titles are the official OWASP titles.
+OWASP_LLM_TOP10 = {
+    "OWASP-LLM01": ("LLM01 Prompt Injection", "Crafted input alters the model's behavior or the actions it takes"),
+    "OWASP-LLM02": ("LLM02 Sensitive Information Disclosure", "Secrets or private data leak through the model or its code"),
+    "OWASP-LLM03": ("LLM03 Supply Chain", "Third-party models, packages and servers are vetted, pinned and reviewed"),
+    "OWASP-LLM04": ("LLM04 Data and Model Poisoning", "Training, fine-tuning and embedding data is protected from tampering"),
+    "OWASP-LLM05": ("LLM05 Improper Output Handling", "Model output is validated before it reaches other systems or code execution"),
+    "OWASP-LLM06": ("LLM06 Excessive Agency", "Tools, permissions and autonomy given to the model are limited and approved"),
+    "OWASP-LLM07": ("LLM07 System Prompt Leakage", "System prompts do not hold secrets or access rules that can be extracted"),
+    "OWASP-LLM08": ("LLM08 Vector and Embedding Weaknesses", "Vector stores and retrieval are access-controlled and protected from poisoning"),
+    "OWASP-LLM09": ("LLM09 Misinformation", "False or unsupported model output is detected and not over-trusted"),
+    "OWASP-LLM10": ("LLM10 Unbounded Consumption", "Model usage is rate-limited and bounded in cost and resources"),
+}
+
+# OWASP Top 10 for Agentic Applications (2026).
+OWASP_AGENTIC_TOP10 = {
+    "OWASP-ASI01": ("ASI01 Agent Goal Hijack", "Malicious content cannot redirect an agent's goals or decision path"),
+    "OWASP-ASI02": ("ASI02 Tool Misuse and Exploitation", "Agents use their tools only within intended, least-privilege bounds"),
+    "OWASP-ASI03": ("ASI03 Identity and Privilege Abuse", "Agent credentials and inherited privileges are scoped and protected"),
+    "OWASP-ASI04": ("ASI04 Agentic Supply Chain Vulnerabilities", "Tools, plugins, servers and prompts agents load are vetted and pinned"),
+    "OWASP-ASI05": ("ASI05 Unexpected Code Execution", "Agent-generated or agent-run code and commands are sandboxed and approved"),
+    "OWASP-ASI06": ("ASI06 Memory and Context Poisoning", "Agent memory, embeddings and retrieved context are protected from poisoning"),
+    "OWASP-ASI07": ("ASI07 Insecure Inter-Agent Communication", "Messages between agents are authenticated and protected from tampering"),
+    "OWASP-ASI08": ("ASI08 Cascading Failures", "An error in one agent does not propagate unchecked across the system"),
+    "OWASP-ASI09": ("ASI09 Human Agent Trust Exploitation", "People are not led to over-trust agent output; human oversight stays meaningful"),
+    "OWASP-ASI10": ("ASI10 Rogue Agents", "Compromised or misaligned agents are detected and contained"),
+}
+
 ALL_FRAMEWORKS = {
     "NIST AI RMF": NIST_AI_RMF,
     "ISO 42001": ISO_42001,
     "EU AI Act": EU_AI_ACT,
+    "OWASP LLM Top 10 (2025)": OWASP_LLM_TOP10,
+    "OWASP Agentic Top 10 (2026)": OWASP_AGENTIC_TOP10,
 }
 
 

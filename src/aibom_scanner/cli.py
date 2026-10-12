@@ -15,7 +15,7 @@ SEVERITY_RANK = {"critical": 4, "high": 3, "medium": 2, "low": 1}
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(
         prog="aibom-scanner",
-        description="Scan codebases for AI SDK usage and map compliance risks to NIST AI RMF, ISO 42001, and EU AI Act.",
+        description="Scan codebases for AI SDK usage and map compliance risks to NIST AI RMF, ISO 42001, EU AI Act, and the OWASP LLM and Agentic Top 10.",
     )
     parser.add_argument("--version", action="version", version=f"aibom-scanner {__version__}")
 

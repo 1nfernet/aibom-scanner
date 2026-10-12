@@ -1,6 +1,8 @@
 """Classify compliance risks from AI detections — 34 rules with framework references."""
 
 import re
+
+from aibom_scanner.detectors.mcp_servers import server_package
 from aibom_scanner.models import Severity
 
 
@@ -134,7 +136,7 @@ RISK_RULES = [
         "severity": Severity.MEDIUM,
         "providers": ["langchain", "llamaindex", "crewai", "autogen", "langgraph", "semantic_kernel"],
         "remediation": "Audit orchestration framework dependencies. Pin versions. Monitor security advisories.",
-        "framework_refs": ["NIST-MAP-2.3", "ISO-42001-A.8.2"],
+        "framework_refs": ["NIST-MAP-2.3", "ISO-42001-A.8.2", "OWASP-LLM03", "OWASP-ASI04"],
     },
     # --- Security ---
     {
@@ -143,7 +145,7 @@ RISK_RULES = [
         "severity": Severity.CRITICAL,
         "providers": ["*"],
         "remediation": "Move all API keys to a secrets manager. Rotate any keys found in code. Add secret scanning to CI/CD.",
-        "framework_refs": ["NIST-MANAGE-4.1", "ISO-42001-A.8.6", "EU-AI-ACT-ART-15"],
+        "framework_refs": ["NIST-MANAGE-4.1", "ISO-42001-A.8.6", "EU-AI-ACT-ART-15", "OWASP-LLM02", "OWASP-ASI03"],
     },
     {
         "category": "security",
@@ -288,7 +290,7 @@ RISK_RULES = [
         "severity": Severity.HIGH,
         "providers": ["crewai", "autogen", "langgraph", "semantic_kernel", "mcp"],
         "remediation": "Implement HITL checkpoints, approval gates before external actions, and kill switches.",
-        "framework_refs": ["NIST-GOVERN-2.2", "ISO-42001-A.9.1", "EU-AI-ACT-ART-14"],
+        "framework_refs": ["NIST-GOVERN-2.2", "ISO-42001-A.9.1", "EU-AI-ACT-ART-14", "OWASP-LLM06", "OWASP-ASI09"],
     },
     {
         "category": "agentic_ai_governance",
@@ -304,7 +306,7 @@ RISK_RULES = [
         "severity": Severity.MEDIUM,
         "providers": ["crewai", "autogen", "langgraph", "semantic_kernel"],
         "remediation": "Implement least-privilege tool permissions, sandboxing, and audit logging.",
-        "framework_refs": ["NIST-MANAGE-4.2", "ISO-42001-A.8.6"],
+        "framework_refs": ["NIST-MANAGE-4.2", "ISO-42001-A.8.6", "OWASP-LLM06", "OWASP-ASI02"],
     },
     {
         "category": "agentic_ai_governance",
@@ -320,7 +322,7 @@ RISK_RULES = [
         "severity": Severity.MEDIUM,
         "providers": ["mcp"],
         "remediation": "Implement auth on MCP endpoints, restrict tool access, log invocations, establish approval gates.",
-        "framework_refs": ["NIST-MANAGE-4.2", "ISO-42001-A.8.6", "EU-AI-ACT-ART-14"],
+        "framework_refs": ["NIST-MANAGE-4.2", "ISO-42001-A.8.6", "EU-AI-ACT-ART-14", "OWASP-LLM06", "OWASP-ASI02", "OWASP-ASI03"],
     },
     # --- Operational Monitoring ---
     {
@@ -591,11 +593,64 @@ def _capability_risk(tool_capabilities: list[dict]) -> dict | None:
             "Separate agents that read untrusted content from agents that hold sensitive data or can act externally; "
             "require human approval before side effects; scope tool credentials to least privilege."
         ),
-        "framework_refs": ["NIST-MANAGE-4.1", "ISO-42001-A.8.6", "EU-AI-ACT-ART-15"],
+        "framework_refs": [
+            "NIST-MANAGE-4.1", "ISO-42001-A.8.6", "EU-AI-ACT-ART-15",
+            "OWASP-LLM01", "OWASP-LLM06", "OWASP-ASI01", "OWASP-ASI02",
+        ],
         "affected_providers": [],
         "evidence_qualifier": qualifier,
         "evidence": evidence,
     }
+
+
+UNPINNED_MCP_TITLE = "MCP server launched without a pinned version"
+CODE_EXEC_TITLE = "Agent tool can execute code"
+
+
+def _evidence_finding(title: str, remediation: str, framework_refs: list[str], lines: list[str]) -> dict:
+    """A MEDIUM, agentic_ai_governance finding built from data, with evidence capped at 10 lines."""
+    shown = lines[:10] + ([f"... and {len(lines) - 10} more"] if len(lines) > 10 else [])
+    return {
+        "category": "agentic_ai_governance",
+        "title": title,
+        "severity": Severity.MEDIUM,
+        "remediation": remediation,
+        "framework_refs": framework_refs,
+        "affected_providers": [],
+        "evidence_qualifier": "",
+        "evidence": shown,
+    }
+
+
+def _unpinned_mcp_risk(mcp_servers: list[dict]) -> dict | None:
+    lines = [
+        f"{s.get('name') or '(unnamed)'} {server_package(s) or s.get('command')} {s.get('file')}:{s.get('line')}"
+        for s in mcp_servers if s.get("pinned") is False
+    ]
+    if not lines:
+        return None
+    return _evidence_finding(
+        UNPINNED_MCP_TITLE,
+        "Pin each MCP server to an exact version or image digest and review updates before adopting them.",
+        ["NIST-MAP-2.3", "ISO-42001-A.8.2", "OWASP-LLM03", "OWASP-ASI04"],
+        lines,
+    )
+
+
+def _code_execution_risk(tool_capabilities: list[dict]) -> dict | None:
+    lines = [
+        f"{t['tool'].rsplit('.', 1)[-1]} {t['file']}:{t['line']}"
+        for t in tool_capabilities if "code_execution" in t["classes"]
+    ]
+    if not lines:
+        return None
+    return _evidence_finding(
+        CODE_EXEC_TITLE,
+        "Run generated or tool-launched code in a sandbox, restrict its network and filesystem access, "
+        "and require approval before execution.",
+        ["NIST-MANAGE-4.1", "ISO-42001-A.8.6", "OWASP-LLM05", "OWASP-LLM06", "OWASP-ASI05"],
+        lines,
+    )
 
 
 MCP_RULE_TITLE = "MCP server exposes tools without governance controls"
@@ -651,9 +706,13 @@ def classify_risks(
             risk["evidence"] = [_mcp_evidence(s) for s in mcp_servers]
         risks.append(risk)
 
-    trifecta = _capability_risk(tool_capabilities or [])
-    if trifecta:
-        risks.append(trifecta)
+    for finding in (
+        _capability_risk(tool_capabilities or []),
+        _unpinned_mcp_risk(mcp_servers or []),
+        _code_execution_risk(tool_capabilities or []),
+    ):
+        if finding:
+            risks.append(finding)
 
     if secrets_management is not None:
         _adjust_credential_risk(risks, secrets_management)

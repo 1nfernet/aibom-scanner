@@ -39,6 +39,14 @@ Per-server MCP inventory.
   MEDIUM with qualifier `repository_wide` when they are spread across files. Eleven web search, scrape and browser
   SDK modules (`tavily`, `firecrawl`,
   `playwright` and others) are classed `untrusted_content_in` by import.
+- **OWASP mappings.** Two control tables, "OWASP LLM Top 10 (2025)" (`OWASP-LLM01`..`10`) and "OWASP Agentic Top 10
+  (2026)" (`OWASP-ASI01`..`10`), join the NIST, ISO and EU tables in `control_mappings`. Existing findings link to
+  them: exposed API keys, orchestration supply chain, MCP governance, human oversight, tool access, and the
+  combined-capability finding. Nine items have no static signal and read GAP: LLM04, LLM07, LLM08, LLM09, LLM10,
+  ASI06, ASI07, ASI08 and ASI10.
+- **Two findings:** "MCP server launched without a pinned version" (MEDIUM, one evidence line per unpinned server)
+  and "Agent tool can execute code" (MEDIUM, one evidence line per tool). Both are built from inventory data, never
+  from provider detection.
 - `NOTICE` file: the MCP constructor list and the tool-to-category data were derived from splx-ai/agentic-radar
   (Apache-2.0).
 

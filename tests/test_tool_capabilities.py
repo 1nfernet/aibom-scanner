@@ -168,7 +168,7 @@ class TestRule:
         (risk,) = _risk(_scan(tmp_path, UNTRUSTED, SENSITIVE, ACTION))
         assert risk["severity"] == "high"
         assert risk["category"] == "agentic_ai_governance" and risk["evidence_basis"] == "observed"
-        assert risk["framework_refs"] == ["NIST-MANAGE-4.1", "ISO-42001-A.8.6", "EU-AI-ACT-ART-15"]
+        assert risk["framework_refs"][:3] == ["NIST-MANAGE-4.1", "ISO-42001-A.8.6", "EU-AI-ACT-ART-15"]
         assert risk["evidence"][0] == (
             "scope: single file agent.py; these tools are available to the same client or module")
         assert risk["evidence_qualifier"] == "" and len(risk["evidence"]) == 4

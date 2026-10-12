@@ -30,7 +30,7 @@ aibom-scanner scan --path /path/to/your/repo
 
 ## What It Finds
 
-`aibom-scanner` detects AI SDKs in your codebase and generates an **AI Bill of Materials (AIBOM)** with compliance risk findings mapped to three frameworks.
+`aibom-scanner` detects AI SDKs in your codebase and generates an **AI Bill of Materials (AIBOM)** with compliance risk findings mapped to three compliance frameworks and two OWASP lists.
 
 | | |
 |---|---|
@@ -40,6 +40,7 @@ aibom-scanner scan --path /path/to/your/repo
 | **Agentic AI detection** | CrewAI, AutoGen, LangGraph, Semantic Kernel, MCP |
 | **34 risk rules** | 8 categories with evidence-qualified severity adjustment |
 | **48 compliance controls** | NIST AI RMF (23), ISO 42001 (15), EU AI Act (10) |
+| **20 OWASP items** | OWASP LLM Top 10 (2025) and OWASP Agentic Top 10 (2026), reported as MAPPED, PARTIAL or GAP; 9 have no static signal and always read GAP (see below) |
 | **Secrets detection** | Hardcoded API keys, Vault, AWS Secrets Manager, dotenv |
 | **Dev tool detection** | Cursor, GitHub Copilot, Claude Code, Aider, TabNine |
 | **Coverage accounting** | Every scan reports what it read — and what it could not |
@@ -85,6 +86,19 @@ scheme and host, and `args` is an allowlist: flag names, the package or image of
 `pipx run` or `docker run` command, and `--flag=<redacted>`. Every other argument, including paths and flag
 values, is shown as `<arg>`. Servers defined in C#, TypeScript or Go
 source are not listed per server; `summary.mcp_servers_note` says so.
+
+## OWASP mappings
+
+Findings link to the OWASP Top 10 for LLM Applications (2025, `OWASP-LLM01`..`10`) and the OWASP Top 10 for Agentic
+Applications (2026, `OWASP-ASI01`..`10`). Eleven items are reachable by a finding today (LLM01, 02, 03, 05, 06 and
+ASI01, 02, 03, 04, 05, 09). Nine have no static signal and are reported as GAP, never hidden: LLM04 Data and Model
+Poisoning, LLM07 System Prompt Leakage, LLM08 Vector and Embedding Weaknesses, LLM09 Misinformation, LLM10 Unbounded
+Consumption, ASI06 Memory and Context Poisoning, ASI07 Insecure Inter-Agent Communication, ASI08 Cascading Failures
+and ASI10 Rogue Agents. A reachable item is PARTIAL when a finding points at it: the scanner reports a risk signal,
+not proof that a control is in place. JSON shows all 20; SARIF shows the linked ids as rule tags; the table shows
+the first three references per finding.
+
+Two findings added with the mappings: "MCP server launched without a pinned version" and "Agent tool can execute code".
 
 ## Tool capability classes
 
