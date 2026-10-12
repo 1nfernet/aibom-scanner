@@ -70,6 +70,7 @@ class ScanResult:
     dependencies: list[dict] = field(default_factory=list)
     dev_tools: list[dict] = field(default_factory=list)
     secrets: list[dict] = field(default_factory=list)
+    mcp_servers: list[dict] = field(default_factory=list)
     guardrails: list[dict] = field(default_factory=list)
     transparency: list[dict] = field(default_factory=list)
     hitl: list[dict] = field(default_factory=list)

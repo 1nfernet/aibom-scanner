@@ -456,6 +456,8 @@ def consolidate_risks(raw_risks: list[dict]) -> list[dict]:
             for prov in sub.get("affected_providers", []):
                 if prov not in merged["affected_providers"]:
                     merged["affected_providers"].append(prov)
+            if sub.get("evidence"):
+                merged["evidence"] = list(merged.get("evidence", [])) + sub["evidence"]
             if sub.get("remediation") and sub["remediation"] not in merged["remediation"]:
                 merged["remediation"] += " " + sub["remediation"]
             if not merged.get("mitigation_status") and _severity_rank(sub.get("severity")) > _severity_rank(merged.get("severity")):
@@ -523,11 +525,19 @@ _REAL_SECRETS_MANAGERS = {
 _ENV_ONLY_METHODS = {"dotenv", "dotenv_config", "env_vars", "gitignore"}
 
 
+MCP_RULE_TITLE = "MCP server exposes tools without governance controls"
+
+
+def _mcp_evidence(server: dict) -> str:
+    return f"{server.get('name') or '(unnamed)'} ({server.get('transport')}) {server.get('file')}:{server.get('line')}"
+
+
 def classify_risks(
     detected_providers: list[str],
     detections: list = None,
     secrets_management: list = None,
     code_contexts: list[str] = None,
+    mcp_servers: list[dict] = None,
 ) -> list[dict]:
     """Generate risk findings from detected AI providers and code evidence."""
     risks = []
@@ -551,7 +561,7 @@ def classify_risks(
             severity = _SEVERITY_DOWNGRADE.get(severity, severity)
             evidence_qualifier = qualifier
 
-        risks.append({
+        risk = {
             "category": rule["category"],
             "title": rule["title"],
             "severity": severity,
@@ -562,7 +572,10 @@ def classify_risks(
                 else [p for p in detected_providers if p in rule_providers]
             ),
             "evidence_qualifier": evidence_qualifier,
-        })
+        }
+        if mcp_servers and rule["title"] == MCP_RULE_TITLE:
+            risk["evidence"] = [_mcp_evidence(s) for s in mcp_servers]
+        risks.append(risk)
 
     if secrets_management is not None:
         _adjust_credential_risk(risks, secrets_management)
