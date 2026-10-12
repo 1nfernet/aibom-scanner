@@ -3,6 +3,8 @@ import re
 from dataclasses import dataclass, field
 from typing import Optional
 
+from aibom_scanner.detectors.secrets import mask_secrets
+
 
 @dataclass
 class Detection:
@@ -324,7 +326,7 @@ def scan_file(file_path: str, content: str) -> list[Detection]:
                     sdk_name=sdk_name,
                     file_path=file_path,
                     line_number=line_num,
-                    code_snippet=line.strip()[:500],
+                    code_snippet=mask_secrets(line.strip())[:500],
                     confidence=0.9,
                     detection_type=det_type,
                     model_name=model_name,

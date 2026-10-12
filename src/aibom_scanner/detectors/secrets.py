@@ -87,6 +87,22 @@ HARDCODED_KEY_PATTERNS = [
 ]
 
 
+# A quoted string literal of 8+ characters assigned to a credential-looking name (`api_key="..."`, `"token": "..."`).
+# Env lookups such as os.environ["API_KEY"] never match: the value must be a quoted literal after `=` or `:`.
+_CREDENTIAL_ASSIGNMENT = re.compile(
+    r"""((?:api[_-]?key|secret|token|password|passwd|authorization|bearer|credential)[\w-]*["']?\s*[=:]\s*)"""
+    r"""(["'])((?:(?!\2).){8,})\2""",
+    re.IGNORECASE,
+)
+
+
+def mask_secrets(text: str) -> str:
+    """Replace key-shaped strings and quoted credential values with "<redacted>". For text that gets serialized."""
+    for pattern, _provider in HARDCODED_KEY_PATTERNS:
+        text = re.sub(pattern, "<redacted>", text)
+    return _CREDENTIAL_ASSIGNMENT.sub(r"\1\2<redacted>\2", text)
+
+
 def redact_key(value: str) -> str:
     """Partially redact a key for display: first 8 + last 4 chars."""
     if len(value) <= 12:
