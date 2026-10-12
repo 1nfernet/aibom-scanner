@@ -81,9 +81,19 @@ def url_host(url: object) -> str | None:
         port = parts.port
     except ValueError:
         return None
-    if not parts.scheme or not host:
+    if parts.scheme not in ("http", "https", "ws", "wss") or not host:
         return None
     return f"{parts.scheme}://{host}" + (f":{port}" if port else "")
+
+
+def _safe_spec(spec: str) -> bool:
+    """A package / image spec: charset-limited, and `=` only as `name==<version>`."""
+    if not _SPEC.match(spec):
+        return False
+    if "=" not in spec:
+        return True
+    name, sep, version = spec.partition("==")
+    return bool(name) and bool(sep) and "=" not in name and bool(_VERSION.match(version))
 
 
 def _cmd_name(command: str | None) -> str:
@@ -110,7 +120,7 @@ def redact_args(args: list, command: str | None = None) -> list[str]:
             if "://" in a:
                 out.append(url_host(a) or _ARG)
             else:
-                out.append(a if _SPEC.match(a) else _ARG)
+                out.append(a if _safe_spec(a) else _ARG)
         elif i == run_idx:
             out.append(a)
         elif a.startswith("-"):
@@ -136,26 +146,27 @@ def _env_names_from_args(command: str | None, args: list) -> list[str]:
 
 # --- pinned ---
 
-_VALUE_FLAGS = {
-    "docker": {"-e", "--env", "-v", "--volume", "-p", "--publish", "--name", "--network", "--net", "-w", "--workdir",
-               "-u", "--user", "--env-file", "--mount", "--entrypoint", "-l", "--label", "--add-host", "--platform",
-               "--pull", "--memory", "-m", "--cpus"},
-    "uvx": {"--from", "--with", "--python", "-p", "--index-url", "--directory", "--with-requirements"},
-    "pipx": {"--spec", "--python", "--pip-args", "--index-url"},
-    "npx": {"-p", "--package", "-c", "--call", "--registry", "--cache", "--prefix"},
+# Flags that take no value. A positional after any OTHER flag is that flag's value, never the spec.
+_BOOL_FLAGS = {
+    "npx": {"-y", "--yes", "-q", "--quiet", "--no-install", "--no"},
+    "uvx": {"-q", "--quiet", "--isolated", "--no-cache", "--offline"},
+    "pipx": {"--no-cache", "--quiet", "-q"},
+    "docker": {"--rm", "-i", "-t", "-it", "-d", "--detach", "--init", "--read-only", "--privileged",
+               "--interactive", "--tty"},
 }
+_SPEC_FLAGS = {"npx": {"-p", "--package"}, "uvx": {"--from"}, "pipx": {"--spec"}}
 
 
-def _first_positional(args: list, value_flags: set[str], start: int = 0) -> int | None:
-    skip = False
+def _first_positional(args: list, bool_flags: set[str], start: int = 0) -> int | None:
+    """First argument that is a positional and not the value of a flag (see _BOOL_FLAGS)."""
     for i in range(start, len(args)):
         a = args[i]
-        if skip:
-            skip = False
-        elif a in value_flags:
-            skip = True
-        elif isinstance(a, str) and not a.startswith("-"):
-            return None if a == _DYNAMIC else i
+        if not isinstance(a, str) or a.startswith("-"):
+            continue
+        prev = args[i - 1] if i > start and isinstance(args[i - 1], str) else None
+        if prev is not None and prev.startswith("-") and "=" not in prev and prev not in bool_flags:
+            continue  # value of a flag
+        return None if a == _DYNAMIC else i
     return None
 
 
@@ -167,19 +178,22 @@ def _flag_value(args: list, names: set[str]) -> int | None:
 
 
 def _spec_index(cmd: str, args: list) -> int | None:
-    """Index of the package / image argument for npx, uvx, pipx run and docker run, else None."""
-    def first(*idx):
-        return next((i for i in idx if i is not None), None)
+    """Index of the package / image argument for npx, uvx, pipx run and docker run, else None.
 
-    if cmd == "npx":
-        return first(_flag_value(args, {"-p", "--package"}), _first_positional(args, _VALUE_FLAGS["npx"]))
-    if cmd == "uvx":
-        return first(_flag_value(args, {"--from"}), _first_positional(args, _VALUE_FLAGS["uvx"]))
-    if cmd == "pipx" and args and args[0] == "run":
-        return first(_flag_value(args, {"--spec"}), _first_positional(args, _VALUE_FLAGS["pipx"], 1))
-    if cmd == "docker" and "run" in args:
-        return _first_positional(args, _VALUE_FLAGS["docker"], args.index("run") + 1)
-    return None
+    The single source of truth for both compute_pinned and redact_args."""
+    if cmd not in _BOOL_FLAGS:
+        return None
+    start = 0
+    if cmd == "pipx":
+        if not args or args[0] != "run":
+            return None
+        start = 1
+    elif cmd == "docker":
+        if "run" not in args:
+            return None
+        start = args.index("run") + 1
+    explicit = _flag_value(args, _SPEC_FLAGS[cmd]) if cmd in _SPEC_FLAGS else None
+    return explicit if explicit is not None else _first_positional(args, _BOOL_FLAGS[cmd], start)
 
 
 def _versioned(spec: str, seps: tuple[str, ...]) -> bool:
@@ -220,7 +234,9 @@ def _record(
 ) -> dict:
     args = list(args or [])
     command = command if isinstance(command, str) else None
-    safe_command = command is not None and bool(_COMMAND.match(command))
+    safe_command = (
+        command is not None and bool(_COMMAND.match(command)) and "://" not in command and "@" not in command
+    )
     arg_env = _env_names_from_args(command if safe_command else None, args)
     env = sorted({k for k in (env_keys or []) if isinstance(k, str)} | set(arg_env))
     return {

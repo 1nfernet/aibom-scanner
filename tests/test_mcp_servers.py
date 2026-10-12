@@ -193,6 +193,33 @@ class TestRedaction:
         assert redact_args(["server.js", "q9Zx7Lm2Pp4Rt8Vw1Yb6Nc3Kd5Hf0Jg"], "node") == ["<arg>", "<arg>"]
         assert redact_args(["-c", f"TOKEN={FAKE} npx thing"], "sh") == ["-c", "<arg>"]
 
+    @pytest.mark.parametrize(
+        "command,args,expected,pinned",
+        [
+            ("npx", ["--api-key", "PROBELEAK18", "some-pkg"], ["--api-key", "<arg>", "some-pkg"], False),
+            ("uvx", ["--token", "PROBELEAK19", "tool"], ["--token", "<arg>", "tool"], False),
+            ("docker", ["run", "--secret-thing", "PROBELEAK20", "img:1"],
+             ["run", "--secret-thing", "<arg>", "img:1"], True),
+            ("pipx", ["run", "--x", "PROBELEAK22", "pkg"], ["run", "--x", "<arg>", "pkg"], False),
+        ],
+    )
+    def test_value_after_unknown_flag_is_not_the_spec(self, command, args, expected, pinned):
+        assert redact_args(args, command) == expected
+        assert compute_pinned(command, args) is pinned
+
+    def test_spec_position_rejects_key_value_and_credentialed_urls(self):
+        assert redact_args([f"API_TOKEN={FAKE}", "tool"], "uvx") == ["<arg>", "<arg>"]
+        assert redact_args([f"tool=={FAKE}=x"], "uvx") == ["<arg>"]
+        assert redact_args(["tool==1.0"], "uvx") == ["tool==1.0"]
+        assert url_host(f"{FAKE}://h.example/x") is None
+        cfg = {"mcpServers": {"s": {"command": f"https://u:{FAKE}@h.example/x", "args": []}}}
+        (s,) = scan_mcp_config("mcp.json", json.dumps(cfg))
+        assert s["command"] == "<redacted>" and FAKE not in json.dumps(s)
+
+    def test_no_spec_means_unknown(self):
+        assert compute_pinned("npx", ["--api-key", "v"]) is None
+        assert redact_args(["--api-key", "v"], "npx") == ["--api-key", "<arg>"]
+
     def test_flag_value_forms(self):
         out = redact_args(["--api-key=" + FAKE, "--port", "80", "--bad flag=" + FAKE, "--x=a=b"], "node")
         assert out == ["--api-key=<redacted>", "--port", "<arg>", "<arg>", "--x=<redacted>"]
@@ -231,6 +258,10 @@ class TestRedaction:
             "p3": {"command": "node", "args": ["server.js", "q9Zx7Lm2Pp4Rt8Vw1Yb6Nc3Kd5Hf0Jg" + FAKE]},
             "p4": {"command": "sh", "args": ["-c", f"TOKEN={FAKE} npx thing"]},
             "p5": {"command": "npx", "args": ["pkg", f"--auth={FAKE}", f"https://u:{FAKE}@h.example/p?q=1"]},
+            "p8": {"command": "npx", "args": ["--api-key", FAKE, "some-pkg"]},
+            "p9": {"command": "uvx", "args": ["--token", FAKE, "tool"]},
+            "p10": {"command": "docker", "args": ["run", "--secret-thing", FAKE, "img:1"]},
+            "p11": {"command": "pipx", "args": ["run", "--x", FAKE, "pkg"]},
             "p6": {"command": f"KEY={FAKE} npx", "args": ["x"]},
             "p7": {"command": "docker", "args": ["run", "-e", f"DB_PASS={FAKE}", "--env", f"T={FAKE}", "img:1"]},
         }})
@@ -243,7 +274,7 @@ class TestRedaction:
             f"'headers': {{'Authorization': '{FAKE}'}}}})\n"
         )
         result = scan_directory(tmp_path)
-        assert len(result.mcp_servers) == 11
+        assert len(result.mcp_servers) == 15
         for output in (format_json(result), format_sarif(result), format_table(result)):
             assert FAKE not in output
         data = json.loads(format_json(result))
