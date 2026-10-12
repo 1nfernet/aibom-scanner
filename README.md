@@ -86,6 +86,16 @@ scheme and host, and `args` is an allowlist: flag names, the package or image of
 values, is shown as `<arg>`. Servers defined in C#, TypeScript or Go
 source are not listed per server; `summary.mcp_servers_note` says so.
 
+## Tool capability classes
+
+Tools an agent can call are classed as `untrusted_content_in`, `sensitive_data_access`, `external_side_effect`,
+`code_execution` or `model_call`, in `tool_capabilities` and `summary.capability_classes`. Python tools are matched
+by import against a table of about 500 LangChain and CrewAI tools. MCP servers are classed only when their package
+(version stripped) is in a short table; others get no class and are never guessed from their name. A repo that holds
+untrusted input, sensitive data access and an action capability (external side effect or code execution) gets the HIGH
+finding "Agent combines untrusted input, sensitive data access and an action capability", with the tools as evidence.
+Tools that are not in the tables are not classified.
+
 ## Observed vs inferred findings
 
 Every finding carries an `evidence_basis`:

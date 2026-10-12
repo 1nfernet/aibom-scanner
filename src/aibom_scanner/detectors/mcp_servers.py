@@ -196,6 +196,24 @@ def _spec_index(cmd: str, args: list) -> int | None:
     return explicit if explicit is not None else _first_positional(args, _BOOL_FLAGS[cmd], start)
 
 
+def server_package(server: dict) -> str | None:
+    """Package or image name (version and tag stripped) of an inventoried npx, uvx, pipx run or docker run server."""
+    args = server.get("args") or []
+    cmd = _cmd_name(server.get("command"))
+    idx = _spec_index(cmd, args)
+    if idx is None or "://" in args[idx] or not _safe_spec(args[idx]):
+        return None
+    spec = args[idx]
+    if cmd == "docker":
+        spec = spec.split("@", 1)[0]
+        head, sep, tag = spec.rpartition(":")
+        return head if sep and "/" not in tag else spec
+    if cmd == "npx":
+        name, sep, _ = spec[1:].partition("@") if spec.startswith("@") else spec.partition("@")
+        return ("@" if spec.startswith("@") else "") + name
+    return spec.split("==", 1)[0].split("@", 1)[0]
+
+
 def _versioned(spec: str, seps: tuple[str, ...]) -> bool:
     """True when spec is name<sep>version with a concrete version (not latest, not a range)."""
     for sep in seps:

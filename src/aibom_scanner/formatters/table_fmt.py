@@ -164,6 +164,17 @@ def format_table(result: ScanResult) -> str:
         lines.append(f"  {DIM}{result.summary.get('mcp_servers_note', '')}{RESET}")
         lines.append("")
 
+    # Tool capability classes (tools matched by import or MCP package; unclassified tools are not listed)
+    if result.tool_capabilities:
+        lines.append(f"{BOLD}Tool Capabilities ({len(result.tool_capabilities)} classified tools){RESET}")
+        lines.append(f"{DIM}{'─' * 70}{RESET}")
+        for cls in result.summary.get("capability_classes", []):
+            tools = [t for t in result.tool_capabilities if cls in t["classes"]]
+            names = ", ".join(t["tool"].rsplit(".", 1)[-1] for t in tools[:3])
+            more = f" +{len(tools) - 3} more" if len(tools) > 3 else ""
+            lines.append(f"  {CYAN}{cls:<22}{RESET} {len(tools):>3}  {DIM}{names}{more}{RESET}")
+        lines.append("")
+
     # CTA
     lines.append(f"{DIM}{'─' * 70}{RESET}")
     lines.append(f"  {BOLD}Get remediation evidence and compliance reports:{RESET}")

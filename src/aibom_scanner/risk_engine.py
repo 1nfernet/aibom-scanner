@@ -525,6 +525,41 @@ _REAL_SECRETS_MANAGERS = {
 _ENV_ONLY_METHODS = {"dotenv", "dotenv_config", "env_vars", "gitignore"}
 
 
+TRIFECTA_TITLE = "Agent combines untrusted input, sensitive data access and an action capability"
+
+
+def _capability_risk(tool_capabilities: list[dict]) -> dict | None:
+    """Evidence-based rule: untrusted_content_in AND sensitive_data_access AND (external_side_effect OR code_execution).
+
+    Fires from named tools only, never from provider detection. Not in RISK_RULES because it needs tool evidence.
+    """
+    by_class: dict[str, list[dict]] = {}
+    for t in tool_capabilities:
+        for c in t["classes"]:
+            by_class.setdefault(c, []).append(t)
+    if not ("untrusted_content_in" in by_class and "sensitive_data_access" in by_class
+            and ("external_side_effect" in by_class or "code_execution" in by_class)):
+        return None
+    evidence = []
+    for c in ("untrusted_content_in", "sensitive_data_access", "external_side_effect", "code_execution"):
+        if c in by_class:
+            tools = ", ".join(f"{t['tool'].rsplit('.', 1)[-1]} {t['file']}:{t['line']}" for t in by_class[c][:3])
+            evidence.append(f"{c}: {tools}")
+    return {
+        "category": "agentic_ai_governance",
+        "title": TRIFECTA_TITLE,
+        "severity": Severity.HIGH,
+        "remediation": (
+            "Separate agents that read untrusted content from agents that hold sensitive data or can act externally; "
+            "require human approval before side effects; scope tool credentials to least privilege."
+        ),
+        "framework_refs": ["NIST-MANAGE-4.1", "ISO-42001-A.8.6", "EU-AI-ACT-ART-15"],
+        "affected_providers": [],
+        "evidence_qualifier": "",
+        "evidence": evidence,
+    }
+
+
 MCP_RULE_TITLE = "MCP server exposes tools without governance controls"
 
 
@@ -538,6 +573,7 @@ def classify_risks(
     secrets_management: list = None,
     code_contexts: list[str] = None,
     mcp_servers: list[dict] = None,
+    tool_capabilities: list[dict] = None,
 ) -> list[dict]:
     """Generate risk findings from detected AI providers and code evidence."""
     risks = []
@@ -576,6 +612,10 @@ def classify_risks(
         if mcp_servers and rule["title"] == MCP_RULE_TITLE:
             risk["evidence"] = [_mcp_evidence(s) for s in mcp_servers]
         risks.append(risk)
+
+    trifecta = _capability_risk(tool_capabilities or [])
+    if trifecta:
+        risks.append(trifecta)
 
     if secrets_management is not None:
         _adjust_credential_risk(risks, secrets_management)

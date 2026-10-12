@@ -27,7 +27,16 @@ Per-server MCP inventory.
   also gets the finding.
 - **Coverage note.** `summary.mcp_servers_note` states that servers defined in C#, TypeScript or Go
   source are not extracted per server. The table output gains an "MCP Servers" section.
-- `NOTICE` file: the MCP constructor list was derived from splx-ai/agentic-radar (Apache-2.0).
+- **Tool capability classes.** `tool_capabilities` lists tools with a capability class
+  (`untrusted_content_in`, `sensitive_data_access`, `external_side_effect`, `code_execution`, `model_call`),
+  matched by Python import against `data/tool_capabilities.json` (about 500 LangChain and CrewAI tools, seeded from
+  agentic-radar's catalogs plus a small hand-classified set) and by MCP package name. `summary.capability_classes`
+  lists the classes present. The table output gains a "Tool Capabilities" section.
+- **New HIGH finding:** "Agent combines untrusted input, sensitive data access and an action capability". It fires
+  only from named tools (untrusted content in AND sensitive data access AND external side effect or code execution),
+  with one evidence line per class, never from provider detection alone.
+- `NOTICE` file: the MCP constructor list and the tool-to-category data were derived from splx-ai/agentic-radar
+  (Apache-2.0).
 
 ## 1.2.0 (2026-07-21)
 

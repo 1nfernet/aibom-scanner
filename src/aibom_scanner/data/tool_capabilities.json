@@ -1,0 +1,1578 @@
+{
+ "_source": "python_tools entries derived from the tool catalogs of splx-ai/agentic-radar (Apache-2.0, https://github.com/splx-ai/agentic-radar), re-keyed to this project's capability classes; sensitive_data_access and external_side_effect entries and mcp_packages are hand-classified by aibom-scanner.",
+ "classes": [
+  "untrusted_content_in",
+  "sensitive_data_access",
+  "external_side_effect",
+  "code_execution",
+  "model_call"
+ ],
+ "python_tools": {
+  "MintbaseLoader.MintbaseDocumentLoader": [
+   "untrusted_content_in"
+  ],
+  "context.download_embeddings": [
+   "untrusted_content_in"
+  ],
+  "crewai_tools.AIMindTool": [
+   "model_call"
+  ],
+  "crewai_tools.BraveSearchTool": [
+   "untrusted_content_in"
+  ],
+  "crewai_tools.BrowserbaseLoadTool": [
+   "untrusted_content_in"
+  ],
+  "crewai_tools.CSVSearchTool": [
+   "untrusted_content_in"
+  ],
+  "crewai_tools.CodeDocsSearchTool": [
+   "untrusted_content_in"
+  ],
+  "crewai_tools.CodeInterpreterTool": [
+   "code_execution"
+  ],
+  "crewai_tools.ComposioTool": [
+   "model_call"
+  ],
+  "crewai_tools.DOCXSearchTool": [
+   "untrusted_content_in"
+  ],
+  "crewai_tools.DirectoryReadTool": [
+   "sensitive_data_access",
+   "untrusted_content_in"
+  ],
+  "crewai_tools.DirectorySearchTool": [
+   "untrusted_content_in"
+  ],
+  "crewai_tools.EXASearchTool": [
+   "untrusted_content_in"
+  ],
+  "crewai_tools.FileReadTool": [
+   "sensitive_data_access",
+   "untrusted_content_in"
+  ],
+  "crewai_tools.FileWriterTool": [
+   "external_side_effect"
+  ],
+  "crewai_tools.FirecrawlSearchTool": [
+   "untrusted_content_in"
+  ],
+  "crewai_tools.GithubSearchTool": [
+   "untrusted_content_in"
+  ],
+  "crewai_tools.JSONSearchTool": [
+   "untrusted_content_in"
+  ],
+  "crewai_tools.LlamaIndexTool": [
+   "model_call"
+  ],
+  "crewai_tools.MDXSearchTool": [
+   "untrusted_content_in"
+  ],
+  "crewai_tools.MySQLSearchTool": [
+   "sensitive_data_access",
+   "untrusted_content_in"
+  ],
+  "crewai_tools.NL2SQLTool": [
+   "sensitive_data_access",
+   "untrusted_content_in"
+  ],
+  "crewai_tools.PDFSearchTool": [
+   "untrusted_content_in"
+  ],
+  "crewai_tools.PGSearchTool": [
+   "untrusted_content_in"
+  ],
+  "crewai_tools.QdrantVectorSearchTool": [
+   "untrusted_content_in"
+  ],
+  "crewai_tools.RagTool": [
+   "model_call"
+  ],
+  "crewai_tools.ScrapeWebsiteTool": [
+   "untrusted_content_in"
+  ],
+  "crewai_tools.SerpApiGoogleSearchTool": [
+   "untrusted_content_in"
+  ],
+  "crewai_tools.SerpApiGoogleShoppingTool": [
+   "untrusted_content_in"
+  ],
+  "crewai_tools.SerperDevTool": [
+   "untrusted_content_in"
+  ],
+  "crewai_tools.SerplyJobSearchTool": [
+   "untrusted_content_in"
+  ],
+  "crewai_tools.SerplyNewsSearchTool": [
+   "untrusted_content_in"
+  ],
+  "crewai_tools.SerplyScholarSearchTool": [
+   "untrusted_content_in"
+  ],
+  "crewai_tools.SerplyWebSearchTool": [
+   "untrusted_content_in"
+  ],
+  "crewai_tools.SnowflakeSearchTool": [
+   "untrusted_content_in"
+  ],
+  "crewai_tools.TXTSearchTool": [
+   "untrusted_content_in"
+  ],
+  "crewai_tools.WeaviateVectorSearchTool": [
+   "untrusted_content_in"
+  ],
+  "crewai_tools.WebsiteSearchTool": [
+   "untrusted_content_in"
+  ],
+  "crewai_tools.XMLSearchTool": [
+   "untrusted_content_in"
+  ],
+  "crewai_tools.YoutubeChannelSearchTool": [
+   "untrusted_content_in"
+  ],
+  "crewai_tools.YoutubeVideoSearchTool": [
+   "untrusted_content_in"
+  ],
+  "databricks_langchain.ChatDatabricks": [
+   "model_call"
+  ],
+  "databricks_langchain.DatabricksVectorSearch": [
+   "untrusted_content_in"
+  ],
+  "docugami_langchain.document_loaders.DocugamiLoader": [
+   "untrusted_content_in"
+  ],
+  "exa_py.Exa": [
+   "untrusted_content_in"
+  ],
+  "langchain.agents.load_tools": [
+   "untrusted_content_in"
+  ],
+  "langchain.retrievers.MergerRetriever": [
+   "untrusted_content_in"
+  ],
+  "langchain.retrievers.RePhraseQueryRetriever": [
+   "untrusted_content_in"
+  ],
+  "langchain.retrievers.document_compressors.FlashrankRerank": [
+   "untrusted_content_in"
+  ],
+  "langchain.retrievers.self_query.base.SelfQueryRetriever": [
+   "untrusted_content_in"
+  ],
+  "langchain.vectorstores.documentdb.DocumentDBVectorSearch": [
+   "untrusted_content_in"
+  ],
+  "langchain_ai21.ChatAI21": [
+   "model_call"
+  ],
+  "langchain_airbyte.AirbyteLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_anthropic.ChatAnthropic": [
+   "model_call"
+  ],
+  "langchain_astradb.AstraDBVectorStore": [
+   "untrusted_content_in"
+  ],
+  "langchain_aws.ChatBedrock": [
+   "model_call"
+  ],
+  "langchain_aws.retrievers.AmazonKnowledgeBasesRetriever": [
+   "untrusted_content_in"
+  ],
+  "langchain_aws.vectorstores.inmemorydb.InMemoryVectorStore": [
+   "untrusted_content_in"
+  ],
+  "langchain_azure_dynamic_sessions.SessionsPythonREPLTool": [
+   "code_execution"
+  ],
+  "langchain_box.blob_loaders.BoxBlobLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_box.document_loaders.BoxLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_cerebras.ChatCerebras": [
+   "model_call"
+  ],
+  "langchain_chroma.Chroma": [
+   "untrusted_content_in"
+  ],
+  "langchain_cohere.ChatCohere": [
+   "model_call"
+  ],
+  "langchain_cohere.CohereRagRetriever": [
+   "untrusted_content_in"
+  ],
+  "langchain_cohere.CohereRerank": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.agent_toolkits.FileManagementToolkit": [
+   "external_side_effect",
+   "sensitive_data_access",
+   "untrusted_content_in"
+  ],
+  "langchain_community.agent_toolkits.O365Toolkit": [
+   "external_side_effect",
+   "sensitive_data_access"
+  ],
+  "langchain_community.agent_toolkits.PlayWrightBrowserToolkit": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.agent_toolkits.PowerBIToolkit": [
+   "sensitive_data_access"
+  ],
+  "langchain_community.agent_toolkits.SlackToolkit": [
+   "external_side_effect",
+   "sensitive_data_access"
+  ],
+  "langchain_community.agent_toolkits.SparkSQLToolkit": [
+   "sensitive_data_access"
+  ],
+  "langchain_community.agent_toolkits.ZapierToolkit": [
+   "external_side_effect"
+  ],
+  "langchain_community.agent_toolkits.cassandra_database.toolkit.CassandraDatabaseToolkit": [
+   "sensitive_data_access"
+  ],
+  "langchain_community.agent_toolkits.clickup.toolkit.ClickupToolkit": [
+   "external_side_effect",
+   "sensitive_data_access"
+  ],
+  "langchain_community.agent_toolkits.github.toolkit.GitHubToolkit": [
+   "external_side_effect",
+   "sensitive_data_access"
+  ],
+  "langchain_community.agent_toolkits.gitlab.toolkit.GitLabToolkit": [
+   "external_side_effect",
+   "sensitive_data_access"
+  ],
+  "langchain_community.agent_toolkits.jira.toolkit.JiraToolkit": [
+   "external_side_effect",
+   "sensitive_data_access"
+  ],
+  "langchain_community.agent_toolkits.openapi.toolkit.RequestsToolkit": [
+   "external_side_effect",
+   "untrusted_content_in"
+  ],
+  "langchain_community.agent_toolkits.sql.toolkit.SQLDatabaseToolkit": [
+   "sensitive_data_access"
+  ],
+  "langchain_community.chat_models.ChatAnyscale": [
+   "model_call"
+  ],
+  "langchain_community.chat_models.ChatBaichuan": [
+   "model_call"
+  ],
+  "langchain_community.chat_models.ChatClovaX": [
+   "model_call"
+  ],
+  "langchain_community.chat_models.ChatCoze": [
+   "model_call"
+  ],
+  "langchain_community.chat_models.ChatDeepInfra": [
+   "model_call"
+  ],
+  "langchain_community.chat_models.ChatEverlyAI": [
+   "model_call"
+  ],
+  "langchain_community.chat_models.ChatHunyuan": [
+   "model_call"
+  ],
+  "langchain_community.chat_models.ChatKonko": [
+   "model_call"
+  ],
+  "langchain_community.chat_models.ChatLiteLLM": [
+   "model_call"
+  ],
+  "langchain_community.chat_models.ChatLiteLLMRouter": [
+   "model_call"
+  ],
+  "langchain_community.chat_models.ChatLlamaCpp": [
+   "model_call"
+  ],
+  "langchain_community.chat_models.ChatMaritalk": [
+   "model_call"
+  ],
+  "langchain_community.chat_models.ChatOCIModelDeployment": [
+   "model_call"
+  ],
+  "langchain_community.chat_models.ChatOctoAI": [
+   "model_call"
+  ],
+  "langchain_community.chat_models.ChatPerplexity": [
+   "model_call"
+  ],
+  "langchain_community.chat_models.ChatPremAI": [
+   "model_call"
+  ],
+  "langchain_community.chat_models.ChatReka": [
+   "model_call"
+  ],
+  "langchain_community.chat_models.ChatSnowflakeCortex": [
+   "model_call"
+  ],
+  "langchain_community.chat_models.ChatSparkLLM": [
+   "model_call"
+  ],
+  "langchain_community.chat_models.ChatYandexGPT": [
+   "model_call"
+  ],
+  "langchain_community.chat_models.ChatYuan2": [
+   "model_call"
+  ],
+  "langchain_community.chat_models.ChatZhipuAI": [
+   "model_call"
+  ],
+  "langchain_community.chat_models.GPTRouter": [
+   "model_call"
+  ],
+  "langchain_community.chat_models.JinaChat": [
+   "model_call"
+  ],
+  "langchain_community.chat_models.MiniMaxChat": [
+   "model_call"
+  ],
+  "langchain_community.chat_models.PaiEasChatEndpoint": [
+   "model_call"
+  ],
+  "langchain_community.chat_models.PromptLayerChatOpenAI": [
+   "model_call"
+  ],
+  "langchain_community.chat_models.QianfanChatEndpoint": [
+   "model_call"
+  ],
+  "langchain_community.chat_models.VolcEngineMaasChat": [
+   "model_call"
+  ],
+  "langchain_community.chat_models.azureml_endpoint.AzureMLChatOnlineEndpoint": [
+   "model_call"
+  ],
+  "langchain_community.chat_models.cloudflare_workersai.ChatCloudflareWorkersAI": [
+   "model_call"
+  ],
+  "langchain_community.chat_models.dappier.ChatDappierAI": [
+   "model_call"
+  ],
+  "langchain_community.chat_models.edenai.ChatEdenAI": [
+   "model_call"
+  ],
+  "langchain_community.chat_models.friendli.ChatFriendli": [
+   "model_call"
+  ],
+  "langchain_community.chat_models.llama_edge.LlamaEdgeChatService": [
+   "model_call"
+  ],
+  "langchain_community.chat_models.mlx.ChatMLX": [
+   "model_call"
+  ],
+  "langchain_community.chat_models.moonshot.MoonshotChat": [
+   "model_call"
+  ],
+  "langchain_community.chat_models.oci_generative_ai.ChatOCIGenAI": [
+   "model_call"
+  ],
+  "langchain_community.chat_models.outlines.ChatOutlines": [
+   "model_call"
+  ],
+  "langchain_community.chat_models.solar.SolarChat": [
+   "model_call"
+  ],
+  "langchain_community.chat_models.symblai_nebula.ChatNebula": [
+   "model_call"
+  ],
+  "langchain_community.chat_models.tongyi.ChatTongyi": [
+   "model_call"
+  ],
+  "langchain_community.chat_models.writer.ChatWriter": [
+   "model_call"
+  ],
+  "langchain_community.chat_models.yi.ChatYi": [
+   "model_call"
+  ],
+  "langchain_community.document_compressors.LLMLinguaCompressor": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.AZLyricsLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.AcreomLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.AirtableLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.AmazonTextractPDFLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.ApifyDatasetLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.ArcGISLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.ArxivLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.AssemblyAIAudioTranscriptLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.AstraDBLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.AsyncChromiumLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.AsyncHtmlLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.AzureAIDataLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.AzureAIDocumentIntelligenceLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.AzureBlobStorageContainerLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.AzureBlobStorageFileLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.BSHTMLLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.BibtexLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.BiliBiliLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.BlackboardLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.BraveSearchLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.BrowserbaseLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.BrowserlessLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.CassandraLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.CoNLLULoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.CollegeConfidentialLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.ConcurrentLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.ConfluenceLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.CubeSemanticLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.DataFrameLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.DatadogLogsLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.DedocFileLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.DedocPDFLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.DiffbotLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.DocusaurusLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.DropboxLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.EtherscanLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.EverNoteLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.FacebookChatLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.GeoDataFrameLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.GitHubIssuesLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.GitLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.GitbookLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.GithubFileLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.GutenbergLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.HNLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.HuggingFaceDatasetLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.IFixitLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.IMSDbLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.ImageCaptionLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.IuguLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.JSONLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.JoplinLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.LakeFSLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.MHTMLLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.MWDumpLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.MastodonTootsLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.MathpixPDFLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.MaxComputeLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.ModernTreasuryLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.NewsURLLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.NotebookLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.NotionDBLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.OBSDirectoryLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.ObsidianLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.OpenCityDataLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.OracleAutonomousDatabaseLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.OutlookMessageLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.PDFMinerLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.PDFPlumberLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.PebbloSafeLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.PolarsDataFrameLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.PsychicLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.PubMedLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.PyMuPDFLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.PyPDFDirectoryLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.PyPDFLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.PyPDFium2Loader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.PySparkDataFrameLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.RSSFeedLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.ReadTheDocsLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.RecursiveUrlLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.RedditPostsLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.RoamLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.S3DirectoryLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.S3FileLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.SRTLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.ScrapflyLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.ScrapingAntLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.SlackDirectoryLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.SnowflakeLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.SpiderLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.SpreedlyLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.StripeLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.TelegramChatApiLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.TelegramChatFileLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.TencentCOSDirectoryLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.TencentCOSFileLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.TensorflowDatasetLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.TiDBLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.ToMarkdownLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.TomlLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.TrelloLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.TwitterTweetLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.UnstructuredEPubLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.UnstructuredEmailLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.UnstructuredExcelLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.UnstructuredMarkdownLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.UnstructuredODTLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.UnstructuredOrgModeLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.UnstructuredPDFLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.UnstructuredPowerPointLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.UnstructuredRSTLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.UnstructuredURLLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.UnstructuredWordDocumentLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.UnstructuredXMLLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.VsdxLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.WeatherDataLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.WebBaseLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.WhatsAppChatLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.WikipediaLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.XorbitsLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.YoutubeLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.YuqueLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.athena.AthenaLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.blob_loaders.youtube_audio.YoutubeAudioLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.blockchain.BlockchainDocumentLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.chatgpt.ChatGPTLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.csv_loader.CSVLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.discord.DiscordChatLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.fauna.FaunaLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.figma.FigmaFileLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.firecrawl.FireCrawlLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.generic.GenericLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.glue_catalog.GlueCatalogLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.image.UnstructuredImageLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.kinetica_loader.KineticaLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.larksuite.LarkSuiteDocLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.larksuite.LarkSuiteWikiLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.llmsherpa.LLMSherpaFileLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.merge.MergedDataLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.mongodb.MongodbLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.needle.NeedleLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.nuclia.NucliaLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.obs_file.OBSFileLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.onedrive.OneDriveLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.onenote.OneNoteLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.oracleai.OracleDocLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.pdf.ZeroxPDFLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.quip.QuipLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.rspace.RSpaceLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.sharepoint.SharePointLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.sitemap.SitemapLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.document_loaders.tsv.UnstructuredTSVLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.retrievers.AmazonKendraRetriever": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.retrievers.ArceeRetriever": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.retrievers.ArxivRetriever": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.retrievers.AskNewsRetriever": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.retrievers.BM25Retriever": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.retrievers.BreebsRetriever": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.retrievers.ChaindeskRetriever": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.retrievers.ChatGPTPluginRetriever": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.retrievers.DocArrayRetriever": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.retrievers.DriaRetriever": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.retrievers.ElasticSearchBM25Retriever": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.retrievers.EmbedchainRetriever": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.retrievers.KNNRetriever": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.retrievers.KayAiRetriever": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.retrievers.MetalRetriever": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.retrievers.NanoPQRetriever": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.retrievers.NeuralDBRetriever": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.retrievers.OutlineRetriever": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.retrievers.PineconeHybridSearchRetriever": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.retrievers.QdrantSparseVectorRetriever": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.retrievers.RememberizerRetriever": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.retrievers.SVMRetriever": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.retrievers.TFIDFRetriever": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.retrievers.TavilySearchAPIRetriever": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.retrievers.needle.NeedleRetriever": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.retrievers.you.YouRetriever": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.retrievers.zep.ZepRetriever": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.tools.BearlyInterpreterTool": [
+   "code_execution"
+  ],
+  "langchain_community.tools.DuckDuckGoSearchResults": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.tools.DuckDuckGoSearchRun": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.tools.E2BDataAnalysisTool": [
+   "code_execution"
+  ],
+  "langchain_community.tools.JinaSearch": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.tools.MojeekSearch": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.tools.ShellTool": [
+   "code_execution",
+   "external_side_effect"
+  ],
+  "langchain_community.tools.TavilySearchResults": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.tools.bing_search.BingSearchResults": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.tools.databricks.UCFunctionToolkit": [
+   "code_execution"
+  ],
+  "langchain_community.tools.google_books.GoogleBooksQueryRun": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.tools.google_finance.GoogleFinanceQueryRun": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.tools.ifttt.IFTTTWebhook": [
+   "external_side_effect"
+  ],
+  "langchain_community.tools.langchain_payman_tool.tool.PaymanAI": [
+   "external_side_effect"
+  ],
+  "langchain_community.tools.reddit_search.tool.RedditSearchRun": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.tools.riza.command.ExecPython": [
+   "code_execution"
+  ],
+  "langchain_community.tools.semanticscholar.tool.SemanticScholarQueryRun": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.tools.wikidata.tool.WikidataAPIWrapper": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.tools.wikidata.tool.WikidataQueryRun": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.tools.you.YouSearchTool": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.utilities.BingSearchAPIWrapper": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.utilities.GoogleSerperAPIWrapper": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.utilities.SearchApiAPIWrapper": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.utilities.SearxSearchWrapper": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.utilities.SerpAPIWrapper": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.utilities.StackExchangeAPIWrapper": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.utilities.alpha_vantage.AlphaVantageAPIWrapper": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.utilities.clickup.ClickupAPIWrapper": [
+   "external_side_effect",
+   "sensitive_data_access"
+  ],
+  "langchain_community.utilities.dataforseo_api_search.DataForSeoAPIWrapper": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.utilities.github.GitHubAPIWrapper": [
+   "external_side_effect",
+   "sensitive_data_access"
+  ],
+  "langchain_community.utilities.gitlab.GitLabAPIWrapper": [
+   "external_side_effect",
+   "sensitive_data_access"
+  ],
+  "langchain_community.utilities.google_books.GoogleBooksAPIWrapper": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.utilities.google_finance.GoogleFinanceAPIWrapper": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.utilities.jira.JiraAPIWrapper": [
+   "external_side_effect",
+   "sensitive_data_access"
+  ],
+  "langchain_community.utilities.reddit_search.RedditSearchAPIWrapper": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.utilities.twilio.TwilioAPIWrapper": [
+   "external_side_effect"
+  ],
+  "langchain_community.utilities.you.YouSearchAPIWrapper": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.utilities.zapier.ZapierNLAWrapper": [
+   "external_side_effect"
+  ],
+  "langchain_community.vectorstores.Aerospike": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.vectorstores.AlibabaCloudOpenSearch": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.vectorstores.AnalyticDB": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.vectorstores.Annoy": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.vectorstores.ApertureDB": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.vectorstores.AtlasDB": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.vectorstores.AwaDB": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.vectorstores.BESVectorStore": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.vectorstores.Bagel": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.vectorstores.Cassandra": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.vectorstores.Clarifai": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.vectorstores.Clickhouse": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.vectorstores.DashVector": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.vectorstores.DeepLake": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.vectorstores.Dingo": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.vectorstores.DocArrayHnswSearch": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.vectorstores.DocArrayInMemorySearch": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.vectorstores.DuckDB": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.vectorstores.EcloudESVectorStore": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.vectorstores.Epsilla": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.vectorstores.FAISS": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.vectorstores.Hologres": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.vectorstores.InfinispanVS": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.vectorstores.KDBAI": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.vectorstores.Kinetica": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.vectorstores.LLMRails": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.vectorstores.LanceDB": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.vectorstores.Lantern": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.vectorstores.ManticoreSearch": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.vectorstores.Marqo": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.vectorstores.Meilisearch": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.vectorstores.Milvus": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.vectorstores.MomentoVectorIndex": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.vectorstores.MyScale": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.vectorstores.NeuralDBVectorStore": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.vectorstores.OpenSearchVectorSearch": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.vectorstores.PGEmbedding": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.vectorstores.PathwayVectorClient": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.vectorstores.Relyt": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.vectorstores.Rockset": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.vectorstores.SKLearnVectorStore": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.vectorstores.SQLiteVSS": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.vectorstores.SQLiteVec": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.vectorstores.ScaNN": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.vectorstores.SemaDB": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.vectorstores.SingleStoreDB": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.vectorstores.StarRocks": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.vectorstores.SupabaseVectorStore": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.vectorstores.SurrealDBStore": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.vectorstores.TablestoreVectorStore": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.vectorstores.Tair": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.vectorstores.TencentVectorDB": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.vectorstores.TiDBVectorStore": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.vectorstores.Tigris": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.vectorstores.TileDB": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.vectorstores.Typesense": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.vectorstores.USearch": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.vectorstores.VDMS": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.vectorstores.VLite": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.vectorstores.Vald": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.vectorstores.Vectara": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.vectorstores.VespaStore": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.vectorstores.Yellowbrick": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.vectorstores.ZepCloudVectorStore": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.vectorstores.ZepVectorStore": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.vectorstores.apache_doris.ApacheDoris": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.vectorstores.azure_cosmos_db.AzureCosmosDBVectorSearch": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.vectorstores.azure_cosmos_db_no_sql.AzureCosmosDBNoSqlVectorSearch": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.vectorstores.azuresearch.AzureSearch": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.vectorstores.falkordb_vector.FalkorDBVector": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.vectorstores.hanavector.HanaDB": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.vectorstores.hippo.Hippo": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.vectorstores.jaguar.Jaguar": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.vectorstores.nucliadb.NucliaDB": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.vectorstores.oraclevs.OracleVS": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.vectorstores.pgvecto_rs.PGVecto_rs": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.vectorstores.timescalevector.TimescaleVector": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.vectorstores.upstash.UpstashVectorStore": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.vectorstores.vdms.VDMS_Client": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.vectorstores.vearch.Vearch": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.vectorstores.vikingdb.VikingDB": [
+   "untrusted_content_in"
+  ],
+  "langchain_community.vectorstores.xata.XataVectorStore": [
+   "untrusted_content_in"
+  ],
+  "langchain_core.document_loaders.LangSmithLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_couchbase.vectorstores.CouchbaseVectorStore": [
+   "untrusted_content_in"
+  ],
+  "langchain_dappier.DappierRetriever": [
+   "untrusted_content_in"
+  ],
+  "langchain_deepseek.ChatDeepSeek": [
+   "model_call"
+  ],
+  "langchain_docling.DoclingLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_elasticsearch.ElasticsearchRetriever": [
+   "untrusted_content_in"
+  ],
+  "langchain_elasticsearch.ElasticsearchStore": [
+   "untrusted_content_in"
+  ],
+  "langchain_experimental.agents.agent_toolkits.create_pandas_dataframe_agent": [
+   "code_execution"
+  ],
+  "langchain_experimental.chat_models.Llama2Chat": [
+   "model_call"
+  ],
+  "langchain_experimental.llms.ChatLlamaAPI": [
+   "model_call"
+  ],
+  "langchain_experimental.utilities.PythonREPL": [
+   "code_execution"
+  ],
+  "langchain_fireworks.ChatFireworks": [
+   "model_call"
+  ],
+  "langchain_gigachat.GigaChat": [
+   "model_call"
+  ],
+  "langchain_goodfire.ChatGoodfire": [
+   "model_call"
+  ],
+  "langchain_google_alloydb_pg.AlloyDBVectorStore": [
+   "untrusted_content_in"
+  ],
+  "langchain_google_bigtable.BigtableLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_google_cloud_sql_mssql.MSSQLLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_google_cloud_sql_mysql.MySQLVectorStore": [
+   "untrusted_content_in"
+  ],
+  "langchain_google_cloud_sql_pg.PostgresVectorStore": [
+   "untrusted_content_in"
+  ],
+  "langchain_google_community.BigQueryLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_google_community.BigQueryVectorStore": [
+   "untrusted_content_in"
+  ],
+  "langchain_google_community.GCSDirectoryLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_google_community.GCSFileLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_google_community.GmailToolkit": [
+   "external_side_effect",
+   "sensitive_data_access",
+   "untrusted_content_in"
+  ],
+  "langchain_google_community.GoogleDriveLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_google_community.GoogleSearchAPIWrapper": [
+   "untrusted_content_in"
+  ],
+  "langchain_google_community.SpeechToTextLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_google_community.VertexAIMultiTurnSearchRetriever": [
+   "untrusted_content_in"
+  ],
+  "langchain_google_community.VertexAISearchRetriever": [
+   "untrusted_content_in"
+  ],
+  "langchain_google_community.VertexFSVectorStore": [
+   "untrusted_content_in"
+  ],
+  "langchain_google_datastore.DatastoreLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_google_el_carro.ElCarroLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_google_firestore.FirestoreLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_google_firestore.FirestoreVectorStore": [
+   "untrusted_content_in"
+  ],
+  "langchain_google_genai.ChatGoogleGenerativeAI": [
+   "model_call"
+  ],
+  "langchain_google_memorystore_redis.RedisVectorStore": [
+   "untrusted_content_in"
+  ],
+  "langchain_google_spanner.SpannerVectorStore": [
+   "untrusted_content_in"
+  ],
+  "langchain_google_vertexai.ChatVertexAI": [
+   "model_call"
+  ],
+  "langchain_groq.ChatGroq": [
+   "model_call"
+  ],
+  "langchain_huggingface.ChatHuggingFace": [
+   "model_call"
+  ],
+  "langchain_hyperbrowser.HyperbrowserLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_ibm.WatsonxRerank": [
+   "untrusted_content_in"
+  ],
+  "langchain_lindorm_integration.vectorstores.LindormVectorStore": [
+   "untrusted_content_in"
+  ],
+  "langchain_linkup.LinkupSearchRetriever": [
+   "untrusted_content_in"
+  ],
+  "langchain_linkup.LinkupSearchTool": [
+   "untrusted_content_in"
+  ],
+  "langchain_milvus.Milvus": [
+   "untrusted_content_in"
+  ],
+  "langchain_milvus.ZillizCloudPipelineRetriever": [
+   "untrusted_content_in"
+  ],
+  "langchain_milvus.retrievers.MilvusCollectionHybridSearchRetriever": [
+   "untrusted_content_in"
+  ],
+  "langchain_mistralai.ChatMistralAI": [
+   "model_call"
+  ],
+  "langchain_modelscope.ModelScopeChatEndpoint": [
+   "model_call"
+  ],
+  "langchain_mongodb.MongoDBAtlasVectorSearch": [
+   "untrusted_content_in"
+  ],
+  "langchain_neo4j.Neo4jVector": [
+   "untrusted_content_in"
+  ],
+  "langchain_nimble.NimbleSearchRetriever": [
+   "untrusted_content_in"
+  ],
+  "langchain_nvidia_ai_endpoints.ChatNVIDIA": [
+   "model_call"
+  ],
+  "langchain_oceanbase.vectorstores.OceanbaseVectorStore": [
+   "untrusted_content_in"
+  ],
+  "langchain_ollama.ChatOllama": [
+   "model_call"
+  ],
+  "langchain_openai.AzureChatOpenAI": [
+   "model_call"
+  ],
+  "langchain_openai.ChatOpenAI": [
+   "model_call"
+  ],
+  "langchain_pinecone.PineconeVectorStore": [
+   "untrusted_content_in"
+  ],
+  "langchain_pipeshift.ChatPipeshift": [
+   "model_call"
+  ],
+  "langchain_postgres.vectorstores.PGVector": [
+   "untrusted_content_in"
+  ],
+  "langchain_predictionguard.ChatPredictionGuard": [
+   "model_call"
+  ],
+  "langchain_pull_md.markdown_loader.PullMdLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_qdrant.QdrantVectorStore": [
+   "untrusted_content_in"
+  ],
+  "langchain_redis.RedisVectorStore": [
+   "untrusted_content_in"
+  ],
+  "langchain_sambanova.ChatSambaNovaCloud": [
+   "model_call"
+  ],
+  "langchain_sambanova.ChatSambaStudio": [
+   "model_call"
+  ],
+  "langchain_sqlserver.SQLServer_VectorStore": [
+   "untrusted_content_in"
+  ],
+  "langchain_together.ChatTogether": [
+   "model_call"
+  ],
+  "langchain_unstructured.UnstructuredLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_upstage.UpstageDocumentParseLoader": [
+   "untrusted_content_in"
+  ],
+  "langchain_weaviate.vectorstores.WeaviateVectorStore": [
+   "untrusted_content_in"
+  ],
+  "langchain_xai.ChatXAI": [
+   "model_call"
+  ],
+  "langchain_yt_dlp.youtube_loader.YoutubeLoaderDL": [
+   "untrusted_content_in"
+  ],
+  "ragatouille.RAGPretrainedModel": [
+   "untrusted_content_in"
+  ]
+ },
+ "mcp_packages": {
+  "@modelcontextprotocol/server-brave-search": [
+   "untrusted_content_in"
+  ],
+  "@modelcontextprotocol/server-filesystem": [
+   "sensitive_data_access",
+   "external_side_effect"
+  ],
+  "@modelcontextprotocol/server-gdrive": [
+   "sensitive_data_access"
+  ],
+  "@modelcontextprotocol/server-github": [
+   "sensitive_data_access",
+   "external_side_effect"
+  ],
+  "@modelcontextprotocol/server-gitlab": [
+   "sensitive_data_access",
+   "external_side_effect"
+  ],
+  "@modelcontextprotocol/server-postgres": [
+   "sensitive_data_access"
+  ],
+  "@modelcontextprotocol/server-puppeteer": [
+   "untrusted_content_in"
+  ],
+  "@modelcontextprotocol/server-slack": [
+   "sensitive_data_access",
+   "external_side_effect"
+  ],
+  "@modelcontextprotocol/server-sqlite": [
+   "sensitive_data_access"
+  ],
+  "@playwright/mcp": [
+   "untrusted_content_in"
+  ],
+  "mcp-server-fetch": [
+   "untrusted_content_in"
+  ],
+  "mcp-server-git": [
+   "sensitive_data_access",
+   "external_side_effect"
+  ],
+  "mcp-server-sqlite": [
+   "sensitive_data_access"
+  ]
+ }
+}
