@@ -16,11 +16,15 @@ Per-server MCP inventory.
   `StdioServerParams` / `SseServerParams` / `StreamableHttpServerParams`, and CrewAI adapters.
   Import aliases are resolved per file.
 - **No values are stored.** Env and header entries are key names only, URLs are reduced to scheme and host,
-  and the value after a credential-looking flag (`--token`, `--api-key`, `--password`, `-e KEY=value`) is
-  replaced with `<redacted>`.
+  and `args` is an allowlist: flag names, `--flag=<redacted>`, the package or image spec of `npx`, `uvx`,
+  `pipx run` and `docker run`, and docker `-e NAME=<redacted>`. Every other argument (paths, positionals,
+  flag values) is shown as `<arg>`. A command that is not a plain program name is shown as `<redacted>`.
+- **Content-based config detection.** Any `.json` file up to 1 MB that contains `"mcpServers"` is read as an
+  MCP config (the `mcpServers` key only).
 - **Per-server risk evidence.** "MCP server exposes tools without governance controls" now carries
   `name (transport) file:line` evidence for each server found. With only an MCP import detected, the
-  finding is unchanged.
+  finding is unchanged. A configured server counts as MCP detected, so a repo with only an MCP config file
+  also gets the finding.
 - **Coverage note.** `summary.mcp_servers_note` states that servers defined in C#, TypeScript or Go
   source are not extracted per server. The table output gains an "MCP Servers" section.
 - `NOTICE` file: the MCP constructor list was derived from splx-ai/agentic-radar (Apache-2.0).

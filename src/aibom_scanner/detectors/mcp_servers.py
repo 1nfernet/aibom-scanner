@@ -4,9 +4,11 @@ Two sources:
   - config files (mcp.json, .mcp.json, mcp_config.json, claude_desktop_config.json), any language
   - Python code, via one AST visitor driven by the constructor table below
 
-Hard rule: only key NAMES are stored for env and headers, URLs are reduced to scheme + host,
-and credential-looking arguments are replaced with "<redacted>". No value from a server's
-env, headers, or credential arguments ever reaches the output.
+Hard rule: no value ever reaches the output. Only key NAMES are stored for env and headers, URLs are
+reduced to scheme + host, and `args` is emitted through an ALLOWLIST: flag names, `--flag=<redacted>`,
+the package / image spec of npx, uvx, pipx run and docker run, and docker `-e NAME=<redacted>`.
+Every other argument (paths, positionals, flag values) is shown as "<arg>". A command that is not a
+plain program name is shown as "<redacted>".
 
 The list of MCP client constructor names was derived from splx-ai/agentic-radar (Apache-2.0).
 See NOTICE.
@@ -17,10 +19,9 @@ import json
 import re
 from urllib.parse import urlsplit
 
-from aibom_scanner.detectors.secrets import HARDCODED_KEY_PATTERNS
-
 MCP_CONFIG_FILENAMES = {"mcp.json", ".mcp.json", "mcp_config.json", "claude_desktop_config.json"}
 MCP_CONFIG_KEYS = ("mcpServers", "servers")
+MAX_JSON_BYTES = 1_000_000
 
 MCP_SERVERS_NOTE = (
     "MCP servers are extracted from config files (any repo) and Python code only. "
@@ -52,14 +53,14 @@ _TRANSPORT_NAMES = {
     "streamablehttp": "http", "streamable_http_server": "http", "hosted": "hosted",
 }
 
-_CREDENTIAL_FLAG = re.compile(
-    r"^-{1,2}[\w-]*(token|api[-_]?key|key|password|passwd|secret|auth|bearer|credential|header)[\w-]*$", re.I
-)
 _ENV_FLAGS = {"-e", "--env"}
 _REDACTED = "<redacted>"
 _DYNAMIC = "<dynamic>"
-_SECRET_PATTERNS = [re.compile(p) for p, _ in HARDCODED_KEY_PATTERNS]
-_AUTH_VALUE = re.compile(r"^\s*(authorization\s*:|bearer\s+|basic\s+)", re.I)
+_ARG = "<arg>"
+_BARE_FLAG = re.compile(r"^-{1,2}[A-Za-z][\w-]*$")
+_SPEC = re.compile(r"^[@\w./:=+-]{1,120}$")
+_ENV_NAME = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
+_COMMAND = re.compile(r"^[\w./\\:@+-]{1,200}$")
 _VERSION = re.compile(r"^v?\d[\w.+\-]*$")
 
 
@@ -85,54 +86,52 @@ def url_host(url: object) -> str | None:
     return f"{parts.scheme}://{host}" + (f":{port}" if port else "")
 
 
-def _redact_arg(arg: str) -> str:
-    """Redact one standalone argument when it looks like a credential or a credentialed URL."""
-    if _AUTH_VALUE.match(arg) or any(p.search(arg) for p in _SECRET_PATTERNS):
-        return _REDACTED
-    if re.match(r"^[a-z][a-z0-9+.-]*://", arg, re.I):
-        return url_host(arg) or _REDACTED
-    return arg
+def _cmd_name(command: str | None) -> str:
+    cmd = (command or "").replace("\\", "/").split("/")[-1].lower()
+    return re.sub(r"\.(cmd|exe)$", "", cmd)
 
 
-def redact_args(args: list) -> list[str]:
-    """Return args with credential values removed: --token VALUE, --token=VALUE, -e KEY=VALUE, secret-shaped args."""
+def redact_args(args: list, command: str | None = None) -> list[str]:
+    """Allowlist redaction. Every element is emitted as exactly one of:
+    a bare flag name; `--flag=<redacted>`; the package / image spec of an npx, uvx, pipx run or docker run
+    command; docker `-e NAME=<redacted>`; the literal `run`; or `<arg>`. Values are never emitted.
+    """
+    cmd = _cmd_name(command)
+    spec_idx = _spec_index(cmd, args)
+    run_idx = args.index("run") if cmd in ("docker", "pipx") and "run" in args else None
     out: list[str] = []
-    redact_next = env_next = False
-    for a in args:
-        if not isinstance(a, str):
+    for i, a in enumerate(args):
+        if not isinstance(a, str) or a == _DYNAMIC:
             out.append(_DYNAMIC)
-            redact_next = env_next = False
-            continue
-        if redact_next:
-            out.append(_REDACTED)
-            redact_next = False
-        elif env_next:
-            out.append(a.split("=", 1)[0] + "=" + _REDACTED if "=" in a else a)
-            env_next = False
-        elif a.startswith("-") and "=" in a:
-            flag, _ = a.split("=", 1)
-            if _CREDENTIAL_FLAG.match(flag) or flag in _ENV_FLAGS:
-                out.append(f"{flag}={_REDACTED}")
+        elif cmd == "docker" and i > 0 and args[i - 1] in _ENV_FLAGS:
+            name = a.split("=", 1)[0]
+            out.append(f"{name}={_REDACTED}" if _ENV_NAME.match(name) else _ARG)
+        elif i == spec_idx:
+            if "://" in a:
+                out.append(url_host(a) or _ARG)
             else:
-                out.append(_redact_arg(a))
-        elif _CREDENTIAL_FLAG.match(a):
+                out.append(a if _SPEC.match(a) else _ARG)
+        elif i == run_idx:
             out.append(a)
-            redact_next = True
-        elif a in _ENV_FLAGS:
-            out.append(a)
-            env_next = True
+        elif a.startswith("-"):
+            if "=" in a:
+                flag = a.split("=", 1)[0]
+                out.append(f"{flag}={_REDACTED}" if _BARE_FLAG.match(flag) else _ARG)
+            else:
+                out.append(a if _BARE_FLAG.match(a) else _ARG)
         else:
-            out.append(_redact_arg(a))
+            out.append(_ARG)
     return out
 
 
-def _env_names_from_args(args: list) -> list[str]:
-    """Names set via docker-style `-e NAME=value` / `--env NAME`."""
-    names = []
-    for i, a in enumerate(args[:-1]):
-        if a in _ENV_FLAGS and isinstance(args[i + 1], str):
-            names.append(args[i + 1].split("=", 1)[0])
-    return names
+def _env_names_from_args(command: str | None, args: list) -> list[str]:
+    """Names set via docker `-e NAME=value` / `--env NAME`."""
+    if _cmd_name(command) != "docker":
+        return []
+    return [
+        a.split("=", 1)[0] for prev, a in zip(args, args[1:])
+        if prev in _ENV_FLAGS and isinstance(a, str) and _ENV_NAME.match(a.split("=", 1)[0])
+    ]
 
 
 # --- pinned ---
@@ -147,22 +146,39 @@ _VALUE_FLAGS = {
 }
 
 
-def _first_positional(args: list[str], value_flags: set[str]) -> str | None:
+def _first_positional(args: list, value_flags: set[str], start: int = 0) -> int | None:
     skip = False
-    for a in args:
+    for i in range(start, len(args)):
+        a = args[i]
         if skip:
             skip = False
         elif a in value_flags:
             skip = True
-        elif not a.startswith("-"):
-            return None if a == _DYNAMIC else a
+        elif isinstance(a, str) and not a.startswith("-"):
+            return None if a == _DYNAMIC else i
     return None
 
 
-def _flag_value(args: list[str], names: set[str]) -> str | None:
+def _flag_value(args: list, names: set[str]) -> int | None:
     for i, a in enumerate(args[:-1]):
         if a in names:
-            return None if args[i + 1] == _DYNAMIC else args[i + 1]
+            return None if args[i + 1] == _DYNAMIC else i + 1
+    return None
+
+
+def _spec_index(cmd: str, args: list) -> int | None:
+    """Index of the package / image argument for npx, uvx, pipx run and docker run, else None."""
+    def first(*idx):
+        return next((i for i in idx if i is not None), None)
+
+    if cmd == "npx":
+        return first(_flag_value(args, {"-p", "--package"}), _first_positional(args, _VALUE_FLAGS["npx"]))
+    if cmd == "uvx":
+        return first(_flag_value(args, {"--from"}), _first_positional(args, _VALUE_FLAGS["uvx"]))
+    if cmd == "pipx" and args and args[0] == "run":
+        return first(_flag_value(args, {"--spec"}), _first_positional(args, _VALUE_FLAGS["pipx"], 1))
+    if cmd == "docker" and "run" in args:
+        return _first_positional(args, _VALUE_FLAGS["docker"], args.index("run") + 1)
     return None
 
 
@@ -176,29 +192,24 @@ def _versioned(spec: str, seps: tuple[str, ...]) -> bool:
 
 
 def compute_pinned(command: str | None, args: list) -> bool | None:
-    """True/False for npx, uvx, pipx run and docker run; None for everything else."""
+    """True/False for npx, uvx, pipx run and docker run; None for everything else. Runs on the original args."""
     if not command or any(not isinstance(a, str) for a in args):
         return None
-    cmd = command.replace("\\", "/").split("/")[-1].lower()
-    cmd = re.sub(r"\.(cmd|exe)$", "", cmd)
+    cmd = _cmd_name(command)
+    idx = _spec_index(cmd, args)
+    if idx is None:
+        return None
+    spec = args[idx]
     if cmd == "npx":
-        spec = _flag_value(args, {"-p", "--package"}) or _first_positional(args, _VALUE_FLAGS["npx"])
-        return _versioned(spec, ("@",)) if spec else None
+        return _versioned(spec, ("@",))
     if cmd == "uvx":
-        spec = _flag_value(args, {"--from"}) or _first_positional(args, _VALUE_FLAGS["uvx"])
-        return _versioned(spec, ("==", "@")) if spec else None
-    if cmd == "pipx" and args and args[0] == "run":
-        spec = _flag_value(args, {"--spec"}) or _first_positional(args[1:], _VALUE_FLAGS["pipx"])
-        return _versioned(spec, ("==",)) if spec else None
-    if cmd == "docker" and "run" in args:
-        image = _first_positional(args[args.index("run") + 1:], _VALUE_FLAGS["docker"])
-        if not image:
-            return None
-        if "@sha256:" in image:
-            return True
-        tag = image.rsplit(":", 1)[1] if ":" in image.rsplit("/", 1)[-1] else ""
-        return bool(tag) and tag != "latest"
-    return None
+        return _versioned(spec, ("==", "@"))
+    if cmd == "pipx":
+        return _versioned(spec, ("==",))
+    if "@sha256:" in spec:
+        return True
+    tag = spec.rsplit(":", 1)[1] if ":" in spec.rsplit("/", 1)[-1] else ""
+    return bool(tag) and tag != "latest"
 
 
 # --- record building ---
@@ -209,14 +220,14 @@ def _record(
 ) -> dict:
     args = list(args or [])
     command = command if isinstance(command, str) else None
-    if command is not None:
-        command = _redact_arg(command)
-    env = sorted({k for k in (env_keys or []) if isinstance(k, str)} | set(_env_names_from_args(args)))
+    safe_command = command is not None and bool(_COMMAND.match(command))
+    arg_env = _env_names_from_args(command if safe_command else None, args)
+    env = sorted({k for k in (env_keys or []) if isinstance(k, str)} | set(arg_env))
     return {
         "name": name if isinstance(name, str) else None,
         "transport": transport,
-        "command": command,
-        "args": redact_args(args),
+        "command": command if safe_command or command is None else _REDACTED,
+        "args": redact_args(args, command if safe_command else None),
         "url_host": url_host(url),
         "env_keys": env,
         "header_keys": sorted({k for k in (header_keys or []) if isinstance(k, str)}),
@@ -224,7 +235,7 @@ def _record(
         "framework": framework,
         "file": file,
         "line": line,
-        "pinned": compute_pinned(command, args) if command else None,
+        "pinned": compute_pinned(command, args) if safe_command else None,
     }
 
 
@@ -243,7 +254,17 @@ def _transport_from_config(cfg: dict) -> str:
 # --- config files ---
 
 
-def scan_mcp_config(rel_path: str, content: str) -> list[dict]:
+def scan_mcp_json(rel_path: str, content: str) -> list[dict]:
+    """Named MCP config files read `mcpServers` and `servers`. Any other .json file up to 1 MB
+    whose text contains "mcpServers" is read for the `mcpServers` key only."""
+    if is_mcp_config_path(rel_path):
+        return scan_mcp_config(rel_path, content)
+    if rel_path.lower().endswith(".json") and len(content) <= MAX_JSON_BYTES and '"mcpServers"' in content:
+        return scan_mcp_config(rel_path, content, keys=("mcpServers",))
+    return []
+
+
+def scan_mcp_config(rel_path: str, content: str, keys: tuple[str, ...] = MCP_CONFIG_KEYS) -> list[dict]:
     """Extract servers from an MCP client config file. Malformed JSON returns []."""
     try:
         data = json.loads(content)
@@ -252,7 +273,7 @@ def scan_mcp_config(rel_path: str, content: str) -> list[dict]:
     if not isinstance(data, dict):
         return []
     servers = []
-    for key in MCP_CONFIG_KEYS:
+    for key in keys:
         block = data.get(key)
         if not isinstance(block, dict):
             continue

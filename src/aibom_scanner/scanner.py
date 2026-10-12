@@ -18,7 +18,13 @@ from aibom_scanner.detectors.ai_sdk import (
     should_scan_file,
 )
 from aibom_scanner.detectors.dev_tools import DevToolDetection, detect_dev_tools
-from aibom_scanner.detectors.mcp_servers import MCP_SERVERS_NOTE, is_mcp_config_path, scan_mcp_file
+from aibom_scanner.detectors.mcp_servers import (
+    MAX_JSON_BYTES,
+    MCP_SERVERS_NOTE,
+    is_mcp_config_path,
+    scan_mcp_file,
+    scan_mcp_json,
+)
 from aibom_scanner.detectors.secrets import (
     detect_hardcoded_keys,
     detect_secrets_management,
@@ -159,10 +165,11 @@ def scan_directory(path: str | Path) -> ScanResult:
         dev_tools = detect_dev_tools(rel_path)
         all_dev_tools.extend(dev_tools)
 
-        # MCP client config files are JSON in places the SDK scan does not read
-        if is_mcp_config_path(rel_path) and not _is_path_skipped(rel_path):
+        # MCP client configs: named files, or any .json file that mentions "mcpServers"
+        if rel_path.lower().endswith(".json") and not _is_path_skipped(rel_path):
             try:
-                all_mcp_servers.extend(scan_mcp_file(rel_path, full_path.read_text(errors="ignore")))
+                if full_path.stat().st_size <= MAX_JSON_BYTES:
+                    all_mcp_servers.extend(scan_mcp_json(rel_path, full_path.read_text(errors="ignore")))
             except (OSError, PermissionError):
                 pass
 
@@ -214,7 +221,8 @@ def scan_directory(path: str | Path) -> ScanResult:
 
     # Risk classification
     raw_risks = classify_risks(
-        detected_providers=providers,
+        # a configured MCP server counts as MCP detected, even with no MCP import
+        detected_providers=providers + (['mcp'] if all_mcp_servers and 'mcp' not in providers else []),
         detections=all_detections,
         secrets_management=combined_secrets,
         code_contexts=code_contexts,

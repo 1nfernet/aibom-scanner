@@ -81,7 +81,9 @@ The JSON output lists each MCP server in `mcp_servers`: name, transport (stdio, 
 URL host, env and header key names, source file and line, and whether an `npx`, `uvx`, `pipx run` or `docker run`
 command is version-pinned. Servers come from `mcp.json`, `.mcp.json`, `mcp_config.json` and `claude_desktop_config.json`
 files and from Python code. Values are never stored: env and header entries are key names only, URLs are reduced to
-scheme and host, and credential arguments are replaced with `<redacted>`. Servers defined in C#, TypeScript or Go
+scheme and host, and `args` is an allowlist: flag names, the package or image of an `npx`, `uvx`,
+`pipx run` or `docker run` command, and `--flag=<redacted>`. Every other argument, including paths and flag
+values, is shown as `<arg>`. Servers defined in C#, TypeScript or Go
 source are not listed per server; `summary.mcp_servers_note` says so.
 
 ## Observed vs inferred findings

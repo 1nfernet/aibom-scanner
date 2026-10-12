@@ -72,6 +72,22 @@ class TestConfigFiles:
         assert scan_directory(tmp_path).mcp_servers == []
 
 
+class TestContentBasedConfig:
+    def test_any_json_with_mcpservers_key(self, tmp_path):
+        _write_config(tmp_path, "extensions_config.example.json", {"mcpServers": {"a": {"command": "x"}}, "skills": {}})
+        (s,) = scan_directory(tmp_path).mcp_servers
+        assert (s["name"], s["file"]) == ("a", "extensions_config.example.json")
+
+    def test_servers_key_only_read_for_named_files(self, tmp_path):
+        _write_config(tmp_path, "other.json", {"servers": {"a": {"command": "x"}}})
+        _write_config(tmp_path, "unrelated.json", {"mcpServers": {"a": {}}, "servers": {"b": {"command": "y"}}})
+        assert [s["name"] for s in scan_directory(tmp_path).mcp_servers] == ["a"]
+
+    def test_large_json_is_skipped(self, tmp_path):
+        _write_config(tmp_path, "big.json", {"mcpServers": {"a": {"command": "x"}}, "pad": "x" * 1_100_000})
+        assert scan_directory(tmp_path).mcp_servers == []
+
+
 class TestPythonConstructors:
     def test_mcp_stdio_server_parameters(self):
         src = (
@@ -171,15 +187,35 @@ class TestPythonConstructors:
 
 
 class TestRedaction:
-    def test_redact_args_flag_forms(self):
-        out = redact_args(["--token", FAKE, "--api-key=" + FAKE, "--port", "80", "-e", f"K={FAKE}", "--header", "A: b"])
-        assert FAKE not in " ".join(out)
-        assert out == ["--token", "<redacted>", "--api-key=<redacted>", "--port", "80", "-e", "K=<redacted>",
-                       "--header", "<redacted>"]
+    def test_probe_cases(self):
+        assert redact_args(["-y", "some-mcp", "-H", f"X-Api-Key: {FAKE}"], "npx") == ["-y", "some-mcp", "-H", "<arg>"]
+        assert redact_args(["tool", f"API_TOKEN={FAKE}"], "uvx") == ["tool", "<arg>"]
+        assert redact_args(["server.js", "q9Zx7Lm2Pp4Rt8Vw1Yb6Nc3Kd5Hf0Jg"], "node") == ["<arg>", "<arg>"]
+        assert redact_args(["-c", f"TOKEN={FAKE} npx thing"], "sh") == ["-c", "<arg>"]
 
-    def test_redact_args_secret_shaped_value(self):
-        shaped = "sk-" + "a" * 24
-        assert redact_args([shaped, "https://u:p@h.example/p?q=1"]) == ["<redacted>", "https://h.example"]
+    def test_flag_value_forms(self):
+        out = redact_args(["--api-key=" + FAKE, "--port", "80", "--bad flag=" + FAKE, "--x=a=b"], "node")
+        assert out == ["--api-key=<redacted>", "--port", "<arg>", "<arg>", "--x=<redacted>"]
+
+    def test_docker_args(self):
+        args = ["run", "-i", "--rm", "-e", f"K={FAKE}", "--env", "bad-name=" + FAKE, "ghcr.io/o/img:1.4", "serve"]
+        assert redact_args(args, "docker") == [
+            "run", "-i", "--rm", "-e", "K=<redacted>", "--env", "<arg>", "ghcr.io/o/img:1.4", "<arg>"]
+
+    def test_spec_with_url_is_reduced(self):
+        assert redact_args([f"https://u:{FAKE}@h.example/p?q=1"], "npx") == ["https://h.example"]
+        assert redact_args(["bad spec " + FAKE], "npx") == ["<arg>"]
+
+    def test_unsafe_command_is_redacted(self):
+        cfg = {"mcpServers": {"s": {"command": f"API_KEY={FAKE} npx thing", "args": ["-y", "pkg@1.0"]}}}
+        (s,) = scan_mcp_config("mcp.json", json.dumps(cfg))
+        assert s["command"] == "<redacted>" and s["pinned"] is None and s["args"] == ["-y", "<arg>"]
+        assert FAKE not in json.dumps(s)
+
+    def test_dynamic_args(self):
+        src = "from mcp import StdioServerParameters\nx = StdioServerParameters(command='node', args=[p, 'a'])\n"
+        (s,) = scan_mcp_python("a.py", src)
+        assert s["args"] == ["<dynamic>", "<arg>"]
 
     def test_url_host(self):
         assert url_host(f"https://u:{FAKE}@h.example:8443/a?t={FAKE}") == "https://h.example:8443"
@@ -190,6 +226,13 @@ class TestRedaction:
             "remote": {"url": f"https://mcp.example.com/x?token={FAKE}", "headers": {"X-Api-Key": FAKE}},
             "local": {"command": "node", "args": ["srv.js", "--token", FAKE, f"--secret={FAKE}"],
                       "env": {"MY_SECRET": FAKE}},
+            "p1": {"command": "npx", "args": ["-y", "some-mcp", "-H", f"X-Api-Key: {FAKE}"]},
+            "p2": {"command": "uvx", "args": ["tool", f"API_TOKEN={FAKE}"]},
+            "p3": {"command": "node", "args": ["server.js", "q9Zx7Lm2Pp4Rt8Vw1Yb6Nc3Kd5Hf0Jg" + FAKE]},
+            "p4": {"command": "sh", "args": ["-c", f"TOKEN={FAKE} npx thing"]},
+            "p5": {"command": "npx", "args": ["pkg", f"--auth={FAKE}", f"https://u:{FAKE}@h.example/p?q=1"]},
+            "p6": {"command": f"KEY={FAKE} npx", "args": ["x"]},
+            "p7": {"command": "docker", "args": ["run", "-e", f"DB_PASS={FAKE}", "--env", f"T={FAKE}", "img:1"]},
         }})
         (tmp_path / "agent.py").write_text(
             "from mcp import StdioServerParameters\n"
@@ -200,11 +243,11 @@ class TestRedaction:
             f"'headers': {{'Authorization': '{FAKE}'}}}})\n"
         )
         result = scan_directory(tmp_path)
-        assert len(result.mcp_servers) == 4
+        assert len(result.mcp_servers) == 11
         for output in (format_json(result), format_sarif(result), format_table(result)):
             assert FAKE not in output
         data = json.loads(format_json(result))
-        assert {k for s in data["mcp_servers"] for k in s["env_keys"]} == {"MY_SECRET", "DB_PASS"}
+        assert {k for s in data["mcp_servers"] for k in s["env_keys"]} == {"MY_SECRET", "DB_PASS", "T"}
         assert {k for s in data["mcp_servers"] for k in s["header_keys"]} == {"X-Api-Key", "Authorization"}
 
 
@@ -250,6 +293,14 @@ class TestRiskEvidence:
         assert any("files (stdio) .mcp.json:" in e for e in risk["evidence"])
         assert any("s (stdio) srv.py:3" in e for e in risk["evidence"])
         assert risk["evidence_basis"] == "observed"
+
+    def test_config_only_repo_gets_mcp_risk(self, tmp_path):
+        _write_config(tmp_path, ".mcp.json", CONFIG)
+        result = scan_directory(tmp_path)
+        risk = next(r for r in result.risks if r["title"] == "Agentic AI framework without human oversight controls")
+        assert any(e.startswith("files (stdio) .mcp.json:") for e in risk["evidence"])
+        assert risk["evidence_basis"] == "observed"
+        assert result.detections == [] and "mcp" not in result.summary["providers"]
 
     def test_rule_unchanged_with_import_only(self):
         risks = consolidate_risks(classify_risks(["mcp"]))

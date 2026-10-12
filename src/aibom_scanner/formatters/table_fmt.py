@@ -152,7 +152,7 @@ def format_table(result: ScanResult) -> str:
     # MCP servers (names, hosts and key names only; values are never collected)
     if result.mcp_servers:
         lines.append(f"{BOLD}MCP Servers ({len(result.mcp_servers)}){RESET}")
-        lines.append(f"{DIM}{'\u2500' * 70}{RESET}")
+        lines.append(f"{DIM}{'─' * 70}{RESET}")
         for s in result.mcp_servers[:15]:
             target = s.get("url_host") or s.get("command") or ""
             pin = {True: "pinned", False: "unpinned"}.get(s.get("pinned"), "")
