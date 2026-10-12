@@ -1568,12 +1568,19 @@
   "@modelcontextprotocol/server-brave-search": [
    "untrusted_content_in"
   ],
+  "@modelcontextprotocol/server-fetch": [
+   "untrusted_content_in"
+  ],
   "@modelcontextprotocol/server-filesystem": [
    "sensitive_data_access",
    "external_side_effect"
   ],
   "@modelcontextprotocol/server-gdrive": [
    "sensitive_data_access"
+  ],
+  "@modelcontextprotocol/server-git": [
+   "sensitive_data_access",
+   "external_side_effect"
   ],
   "@modelcontextprotocol/server-github": [
    "sensitive_data_access",
@@ -1597,6 +1604,9 @@
    "sensitive_data_access"
   ],
   "@playwright/mcp": [
+   "untrusted_content_in"
+  ],
+  "mcp-fetch-server": [
    "untrusted_content_in"
   ],
   "mcp-server-fetch": [

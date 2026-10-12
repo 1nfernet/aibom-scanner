@@ -47,7 +47,7 @@ class TestData:
                 assert classes and set(classes) <= set(CAPABILITY_CLASSES), key
 
     def test_limits(self):
-        assert len(load_data()["mcp_packages"]) <= 15
+        assert len(load_data()["mcp_packages"]) <= 20
 
 
 class TestImports:
