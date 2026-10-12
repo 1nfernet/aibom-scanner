@@ -124,7 +124,7 @@ OWASP_AGENTIC_TOP10 = {
     ),
     "OWASP-ASI08": ("ASI08 Cascading Failures", "An error in one agent does not propagate unchecked across the system"),
     "OWASP-ASI09": (
-        "ASI09 Human Agent Trust Exploitation",
+        "ASI09 Human-Agent Trust Exploitation",
         "People are not led to over-trust agent output; human oversight stays meaningful",
     ),
     "OWASP-ASI10": ("ASI10 Rogue Agents", "Compromised or misaligned agents are detected and contained"),
