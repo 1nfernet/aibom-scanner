@@ -322,7 +322,9 @@ RISK_RULES = [
         "severity": Severity.MEDIUM,
         "providers": ["mcp"],
         "remediation": "Implement auth on MCP endpoints, restrict tool access, log invocations, establish approval gates.",
-        "framework_refs": ["NIST-MANAGE-4.2", "ISO-42001-A.8.6", "EU-AI-ACT-ART-14", "OWASP-LLM06", "OWASP-ASI02", "OWASP-ASI03"],
+        "framework_refs": [
+            "NIST-MANAGE-4.2", "ISO-42001-A.8.6", "EU-AI-ACT-ART-14", "OWASP-LLM06", "OWASP-ASI02", "OWASP-ASI03",
+        ],
     },
     # --- Operational Monitoring ---
     {

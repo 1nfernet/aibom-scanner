@@ -73,9 +73,10 @@ class TestMapper:
     def test_gap_partial_mapped(self):
         risks = [
             {"title": "t", "severity": Severity.HIGH, "framework_refs": ["OWASP-LLM06"]},
-            {"title": "u", "severity": Severity.LOW, "framework_refs": ["OWASP-ASI03"], "mitigation_status": "mitigated"},
-            {"title": "v", "severity": Severity.LOW, "framework_refs": ["OWASP-LLM02"], "mitigation_status": "mitigated",
-             "evidence_qualifier": "repository_wide"},
+            {"title": "u", "severity": Severity.LOW, "framework_refs": ["OWASP-ASI03"],
+             "mitigation_status": "mitigated"},
+            {"title": "v", "severity": Severity.LOW, "framework_refs": ["OWASP-LLM02"],
+             "mitigation_status": "mitigated", "evidence_qualifier": "repository_wide"},
         ]
         mappings = map_controls(risks)
         assert self._status(mappings, "OWASP-LLM06") == CoverageStatus.PARTIAL
