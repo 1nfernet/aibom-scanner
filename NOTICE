@@ -8,3 +8,8 @@ splx-ai/agentic-radar (Apache-2.0), https://github.com/splx-ai/agentic-radar
   src/aibom_scanner/detectors/mcp_servers.py was derived from agentic-radar's
   MCP analysis modules and re-implemented here as a single data-driven AST
   visitor. No agentic-radar code is included.
+
+  The tool-to-category data in src/aibom_scanner/data/tool_capabilities.json (python_tools) was copied
+  from agentic-radar's tool catalogs (langgraph/predefined_tools.json and crewai/tool_categories.json)
+  and re-keyed to this project's capability classes. The sensitive_data_access and external_side_effect
+  entries and the mcp_packages table are hand-classified by aibom-scanner.

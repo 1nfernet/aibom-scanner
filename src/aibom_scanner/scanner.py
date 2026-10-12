@@ -25,6 +25,11 @@ from aibom_scanner.detectors.mcp_servers import (
     scan_mcp_file,
     scan_mcp_json,
 )
+from aibom_scanner.detectors.tool_capabilities import (
+    capability_classes,
+    mcp_capabilities,
+    scan_tool_imports,
+)
 from aibom_scanner.detectors.secrets import (
     detect_hardcoded_keys,
     detect_secrets_management,
@@ -144,6 +149,7 @@ def scan_directory(path: str | Path) -> ScanResult:
     all_dev_tools: list[DevToolDetection] = []
     all_hardcoded = []
     all_mcp_servers: list[dict] = []
+    all_tool_caps: list[dict] = []
     code_contexts: list[str] = []
     file_contents: dict[str, str] = {}
     files_scanned = 0
@@ -187,6 +193,7 @@ def scan_directory(path: str | Path) -> ScanResult:
         # Per-server MCP inventory (Python code; config files were handled above)
         if not is_mcp_config_path(rel_path):
             all_mcp_servers.extend(scan_mcp_file(rel_path, content))
+        all_tool_caps.extend(scan_tool_imports(rel_path, content))
 
         # AI SDK detection
         detections = scan_file(rel_path, content)
@@ -202,6 +209,8 @@ def scan_directory(path: str | Path) -> ScanResult:
         # Hardcoded key detection
         hardcoded = detect_hardcoded_keys(rel_path, content)
         all_hardcoded.extend(hardcoded)
+
+    all_tool_caps.extend(mcp_capabilities(all_mcp_servers))
 
     # Batch secrets management detection (uses file paths + contents)
     all_secrets = detect_secrets_management(
@@ -227,6 +236,7 @@ def scan_directory(path: str | Path) -> ScanResult:
         secrets_management=combined_secrets,
         code_contexts=code_contexts,
         mcp_servers=all_mcp_servers,
+        tool_capabilities=all_tool_caps,
     )
     risks = consolidate_risks(raw_risks)
     set_evidence_basis(risks)
@@ -252,6 +262,7 @@ def scan_directory(path: str | Path) -> ScanResult:
         dev_tools=[asdict(d) for d in all_dev_tools],
         secrets=[asdict(s) for s in combined_secrets],
         mcp_servers=all_mcp_servers,
+        tool_capabilities=all_tool_caps,
         risks=[_serialize_risk(r) for r in risks],
         control_mappings=[
             {
@@ -270,6 +281,7 @@ def scan_directory(path: str | Path) -> ScanResult:
             "total_dev_tools": len(all_dev_tools),
             "total_mcp_servers": len(all_mcp_servers),
             "mcp_servers_note": MCP_SERVERS_NOTE,
+            "capability_classes": capability_classes(all_tool_caps),
             "files_scanned": files_scanned,
             "files_with_detections": files_with_detections,
             "risk_counts": _count_severities(risks),
