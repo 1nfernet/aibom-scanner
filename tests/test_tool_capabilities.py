@@ -119,6 +119,7 @@ class TestModules:
         }}))
         (risk,) = _risk(scan_directory(tmp_path))
         assert any(e.startswith("untrusted_content_in: firecrawl scrape.py:1") for e in risk["evidence"])
+        assert risk["severity"] == "medium"  # legs sit in different files
 
 
 class TestMcpPackages:
@@ -168,8 +169,9 @@ class TestRule:
         assert risk["severity"] == "high"
         assert risk["category"] == "agentic_ai_governance" and risk["evidence_basis"] == "observed"
         assert risk["framework_refs"] == ["NIST-MANAGE-4.1", "ISO-42001-A.8.6", "EU-AI-ACT-ART-15"]
-        assert risk["evidence"][0] == "scope: repository-wide; the tools below may belong to different agents"
-        assert len(risk["evidence"]) == 4
+        assert risk["evidence"][0] == (
+            "scope: single file agent.py; these tools are available to the same client or module")
+        assert risk["evidence_qualifier"] == "" and len(risk["evidence"]) == 4
         assert risk["evidence"][1].startswith("untrusted_content_in: BraveSearchTool agent.py:1")
 
     def test_fires_with_code_execution_as_action_leg(self, tmp_path):
@@ -196,7 +198,38 @@ class TestRule:
             "git": {"command": "uvx", "args": ["mcp-server-git==0.6"]},
         }}))
         (risk,) = _risk(scan_directory(tmp_path))
+        assert risk["severity"] == "high" and risk["evidence"][0].startswith("scope: single file .mcp.json;")
         assert any(".mcp.json:" in e for e in risk["evidence"])
+
+    def test_repo_wide_tier_is_medium_and_not_double_downgraded(self, tmp_path):
+        (tmp_path / "a.py").write_text(UNTRUSTED)
+        (tmp_path / "b.py").write_text(SENSITIVE)
+        (tmp_path / "c.py").write_text(ACTION)
+        result = scan_directory(tmp_path)
+        (risk,) = _risk(result)
+        assert risk["severity"] == "medium" and risk["evidence_qualifier"] == "repository_wide"
+        assert risk["evidence"][0] == "scope: repository-wide; the tools below may belong to different agents"
+        assert risk["evidence_basis"] == "observed"
+        assert result.summary["risk_counts"]["medium"] >= 1
+        caps = result.tool_capabilities
+        again = consolidate_risks(classify_risks(["crewai"], tool_capabilities=caps))
+        assert next(r for r in again if r["title"] == TRIFECTA_TITLE)["severity"].value == "medium"
+
+    def test_single_tool_with_all_classes_is_not_same_file(self, tmp_path, monkeypatch):
+        monkeypatch.setitem(load_data()["mcp_packages"], "solo-pkg",
+                            ["untrusted_content_in", "sensitive_data_access", "external_side_effect"])
+        (tmp_path / ".mcp.json").write_text(json.dumps(
+            {"mcpServers": {"solo": {"command": "npx", "args": ["-y", "solo-pkg@1"]}}}))
+        (risk,) = _risk(scan_directory(tmp_path))
+        assert risk["severity"] == "medium" and risk["evidence"][0].startswith("scope: repository-wide")
+
+    def test_also_n_more_files(self, tmp_path):
+        for name in ("a.py", "b.py"):
+            (tmp_path / name).write_text(UNTRUSTED + SENSITIVE + ACTION)
+        (risk,) = _risk(scan_directory(tmp_path))
+        assert risk["evidence"][0].startswith("scope: single file a.py;")
+        assert risk["evidence"][-1] == "also: 1 more file(s) qualify"
+        assert all("b.py" not in e for e in risk["evidence"])
 
     def test_survives_consolidation(self):
         caps = [

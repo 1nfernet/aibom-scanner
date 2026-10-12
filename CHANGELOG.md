@@ -32,10 +32,12 @@ Per-server MCP inventory.
   matched by Python import against `data/tool_capabilities.json` (about 500 LangChain and CrewAI tools, seeded from
   agentic-radar's catalogs plus a small hand-classified set) and by MCP package name. `summary.capability_classes`
   lists the classes present. The table output gains a "Tool Capabilities" section.
-- **New HIGH finding:** "Codebase combines untrusted input, sensitive data access and an action capability". It fires
-  only from named tools (untrusted content in AND sensitive data access AND external side effect or code execution),
-  with a scope line (repository-wide; the tools may belong to different agents) and one evidence line per class,
-  never from provider detection alone. Eleven web search, scrape and browser SDK modules (`tavily`, `firecrawl`,
+- **New finding (HIGH or MEDIUM):** "Codebase combines untrusted input, sensitive data access and an action
+  capability". It fires only from named tools (untrusted content in AND sensitive data access AND external side
+  effect or code execution), never from provider detection alone, with a scope line and one evidence line per
+  class. It is HIGH when a single file holds the legs in at least two distinct tools (same client or module), and
+  MEDIUM with qualifier `repository_wide` when they are spread across files. Eleven web search, scrape and browser
+  SDK modules (`tavily`, `firecrawl`,
   `playwright` and others) are classed `untrusted_content_in` by import.
 - `NOTICE` file: the MCP constructor list and the tool-to-category data were derived from splx-ai/agentic-radar
   (Apache-2.0).
