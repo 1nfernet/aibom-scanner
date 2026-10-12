@@ -260,7 +260,7 @@ def scan_directory(path: str | Path) -> ScanResult:
         detections=[asdict(d) for d in all_detections],
         dependencies=all_dep_detections,  # already dicts from scan_dependencies
         dev_tools=[asdict(d) for d in all_dev_tools],
-        secrets=[asdict(s) for s in combined_secrets],
+        secrets=[{k: v for k, v in asdict(s).items() if k != "raw_value"} for s in combined_secrets],
         mcp_servers=all_mcp_servers,
         tool_capabilities=all_tool_caps,
         risks=[_serialize_risk(r) for r in risks],
