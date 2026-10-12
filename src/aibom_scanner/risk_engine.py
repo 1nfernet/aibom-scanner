@@ -525,7 +525,7 @@ _REAL_SECRETS_MANAGERS = {
 _ENV_ONLY_METHODS = {"dotenv", "dotenv_config", "env_vars", "gitignore"}
 
 
-TRIFECTA_TITLE = "Agent combines untrusted input, sensitive data access and an action capability"
+TRIFECTA_TITLE = "Codebase combines untrusted input, sensitive data access and an action capability"
 
 
 def _capability_risk(tool_capabilities: list[dict]) -> dict | None:
@@ -540,7 +540,7 @@ def _capability_risk(tool_capabilities: list[dict]) -> dict | None:
     if not ("untrusted_content_in" in by_class and "sensitive_data_access" in by_class
             and ("external_side_effect" in by_class or "code_execution" in by_class)):
         return None
-    evidence = []
+    evidence = ["scope: repository-wide; the tools below may belong to different agents"]
     for c in ("untrusted_content_in", "sensitive_data_access", "external_side_effect", "code_execution"):
         if c in by_class:
             tools = ", ".join(f"{t['tool'].rsplit('.', 1)[-1]} {t['file']}:{t['line']}" for t in by_class[c][:3])

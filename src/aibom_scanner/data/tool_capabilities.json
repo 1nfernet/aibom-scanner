@@ -1,5 +1,5 @@
 {
- "_source": "python_tools entries derived from the tool catalogs of splx-ai/agentic-radar (Apache-2.0, https://github.com/splx-ai/agentic-radar), re-keyed to this project's capability classes; sensitive_data_access and external_side_effect entries and mcp_packages are hand-classified by aibom-scanner.",
+ "_source": "python_tools entries derived from the tool catalogs of splx-ai/agentic-radar (Apache-2.0, https://github.com/splx-ai/agentic-radar), re-keyed to this project's capability classes; sensitive_data_access and external_side_effect entries and mcp_packages are hand-classified by aibom-scanner. python_modules is hand-classified by aibom-scanner.",
  "classes": [
   "untrusted_content_in",
   "sensitive_data_access",
@@ -1526,6 +1526,41 @@
    "untrusted_content_in"
   ],
   "ragatouille.RAGPretrainedModel": [
+   "untrusted_content_in"
+  ]
+ },
+ "python_modules": {
+  "tavily": [
+   "untrusted_content_in"
+  ],
+  "duckduckgo_search": [
+   "untrusted_content_in"
+  ],
+  "ddgs": [
+   "untrusted_content_in"
+  ],
+  "firecrawl": [
+   "untrusted_content_in"
+  ],
+  "exa_py": [
+   "untrusted_content_in"
+  ],
+  "serpapi": [
+   "untrusted_content_in"
+  ],
+  "googlesearch": [
+   "untrusted_content_in"
+  ],
+  "newspaper": [
+   "untrusted_content_in"
+  ],
+  "trafilatura": [
+   "untrusted_content_in"
+  ],
+  "playwright": [
+   "untrusted_content_in"
+  ],
+  "selenium": [
    "untrusted_content_in"
   ]
  },

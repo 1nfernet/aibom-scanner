@@ -84,6 +84,43 @@ class TestImports:
         assert scan_tool_imports("a.py", "from crewai_tools import (\n") == []
 
 
+class TestModules:
+    @pytest.mark.parametrize(
+        "src,root",
+        [
+            ("import tavily\n", "tavily"),
+            ("import playwright.sync_api\n", "playwright"),
+            ("import selenium.webdriver as wd\n", "selenium"),
+            ("from firecrawl import FirecrawlApp\n", "firecrawl"),
+            ("from duckduckgo_search.exceptions import X\n", "duckduckgo_search"),
+        ],
+    )
+    def test_each_import_form(self, src, root):
+        (t,) = scan_tool_imports("a.py", src)
+        assert (t["tool"], t["classes"], t["source"], t["line"]) == (root, ["untrusted_content_in"], "import", 1)
+
+    def test_one_record_per_root_per_file(self):
+        assert len(scan_tool_imports("a.py", "import tavily\nfrom tavily import TavilyClient\n")) == 1
+
+    @pytest.mark.parametrize("src", ["import tavily_helpers\n", "from tavilyx import a\n", "import my_selenium\n"])
+    def test_prefix_lookalike_does_not_match(self, src):
+        assert scan_tool_imports("a.py", src) == []
+
+    def test_exactly_the_agreed_modules(self):
+        assert sorted(load_data()["python_modules"]) == sorted(
+            "tavily duckduckgo_search ddgs firecrawl exa_py serpapi googlesearch newspaper trafilatura "
+            "playwright selenium".split())
+
+    def test_rule_fires_from_module_and_mcp_package_legs(self, tmp_path):
+        (tmp_path / "scrape.py").write_text("from firecrawl import FirecrawlApp\n")
+        (tmp_path / ".mcp.json").write_text(json.dumps({"mcpServers": {
+            "db": {"command": "npx", "args": ["-y", "@modelcontextprotocol/server-sqlite@1"]},
+            "git": {"command": "uvx", "args": ["mcp-server-git==0.6"]},
+        }}))
+        (risk,) = _risk(scan_directory(tmp_path))
+        assert any(e.startswith("untrusted_content_in: firecrawl scrape.py:1") for e in risk["evidence"])
+
+
 class TestMcpPackages:
     def _servers(self, cmd, args):
         return scan_mcp_config("mcp.json", json.dumps({"mcpServers": {"x": {"command": cmd, "args": args}}}))
@@ -131,8 +168,9 @@ class TestRule:
         assert risk["severity"] == "high"
         assert risk["category"] == "agentic_ai_governance" and risk["evidence_basis"] == "observed"
         assert risk["framework_refs"] == ["NIST-MANAGE-4.1", "ISO-42001-A.8.6", "EU-AI-ACT-ART-15"]
-        assert len(risk["evidence"]) == 3
-        assert risk["evidence"][0].startswith("untrusted_content_in: BraveSearchTool agent.py:1")
+        assert risk["evidence"][0] == "scope: repository-wide; the tools below may belong to different agents"
+        assert len(risk["evidence"]) == 4
+        assert risk["evidence"][1].startswith("untrusted_content_in: BraveSearchTool agent.py:1")
 
     def test_fires_with_code_execution_as_action_leg(self, tmp_path):
         (risk,) = _risk(_scan(tmp_path, UNTRUSTED, SENSITIVE, CODE_EXEC))

@@ -1,8 +1,8 @@
 """Capability classes for the tools an agent can call.
 
 Classes: untrusted_content_in, sensitive_data_access, external_side_effect, code_execution, model_call.
-Python tools are matched by import (aliases resolved per file); MCP servers by their package spec, taken
-from the WO-A1 inventory. A server whose package is not in the table gets no classes. Never guessed from a name.
+Python tools are matched by import (aliases resolved per file), SDK modules by import root, and MCP servers
+by their package spec, taken from the WO-A1 inventory. A server whose package is not in the table gets no classes. Never guessed from a name.
 
 The python_tools data was copied from splx-ai/agentic-radar (Apache-2.0) and re-keyed. See NOTICE.
 """
@@ -50,14 +50,15 @@ def _classes_for(fq: str) -> list[str] | None:
 
 def scan_tool_imports(rel_path: str, content: str) -> list[dict]:
     """Classified tools imported or referenced in a Python file. Unparseable files yield []."""
-    if not rel_path.endswith(".py") or not any(root in content for root in _REEXPORT_ROOTS):
+    modules = load_data()["python_modules"]
+    if not rel_path.endswith(".py") or not any(root in content for root in (*_REEXPORT_ROOTS, *modules)):
         return []
     try:
         tree = ast.parse(content)
     except (SyntaxError, ValueError, RecursionError):
         return []
     imports: dict[str, str] = {}
-    found: dict[str, dict] = {}
+    found: dict = {}
 
     def record(fq: str, line: int) -> None:
         classes = _classes_for(fq)
@@ -72,12 +73,21 @@ def scan_tool_imports(rel_path: str, content: str) -> list[dict]:
             return f"{base}.{node.attr}" if base else None
         return None
 
+    def record_module(name: str, line: int) -> None:
+        root = name.split(".")[0]
+        if root in modules and ("module", root) not in found:
+            found[("module", root)] = {
+                "tool": root, "classes": list(modules[root]), "source": "import", "file": rel_path, "line": line,
+            }
+
     for node in ast.walk(tree):
         if isinstance(node, ast.Import):
             for a in node.names:
+                record_module(a.name, node.lineno)
                 imports[a.asname or a.name.split(".")[0]] = a.name if a.asname else a.name.split(".")[0]
                 record(a.name, node.lineno)
         elif isinstance(node, ast.ImportFrom) and node.module and not node.level:
+            record_module(node.module, node.lineno)
             for a in node.names:
                 imports[a.asname or a.name] = f"{node.module}.{a.name}"
                 record(f"{node.module}.{a.name}", node.lineno)

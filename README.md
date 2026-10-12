@@ -91,9 +91,11 @@ source are not listed per server; `summary.mcp_servers_note` says so.
 Tools an agent can call are classed as `untrusted_content_in`, `sensitive_data_access`, `external_side_effect`,
 `code_execution` or `model_call`, in `tool_capabilities` and `summary.capability_classes`. Python tools are matched
 by import against a table of about 500 LangChain and CrewAI tools. MCP servers are classed only when their package
-(version stripped) is in a short table; others get no class and are never guessed from their name. A repo that holds
+(version stripped) is in a short table; others get no class and are never guessed from their name. A codebase that holds
 untrusted input, sensitive data access and an action capability (external side effect or code execution) gets the HIGH
-finding "Agent combines untrusted input, sensitive data access and an action capability", with the tools as evidence.
+finding "Codebase combines untrusted input, sensitive data access and an action capability", with the tools as evidence.
+The rule is repository-wide: the tools may belong to different agents. A short list of web search, scrape and browser
+SDKs (for example `tavily`, `firecrawl`, `playwright`) also counts as `untrusted_content_in`, matched by import.
 Tools that are not in the tables are not classified.
 
 ## Observed vs inferred findings
