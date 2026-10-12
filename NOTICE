@@ -1,0 +1,10 @@
+aibom-scanner
+Copyright 2026 SaaSVista
+
+This product includes the following third-party derived material.
+
+splx-ai/agentic-radar (Apache-2.0), https://github.com/splx-ai/agentic-radar
+  The list of MCP client constructor names and parameter names used by
+  src/aibom_scanner/detectors/mcp_servers.py was derived from agentic-radar's
+  MCP analysis modules and re-implemented here as a single data-driven AST
+  visitor. No agentic-radar code is included.

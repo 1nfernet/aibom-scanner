@@ -1,5 +1,34 @@
 # Changelog
 
+## Unreleased
+
+Per-server MCP inventory.
+
+### Added
+
+- **`mcp_servers` in the scan result.** Each MCP server the repo configures or starts is listed with
+  name, transport (`stdio`, `sse`, `http`, `hosted`, `unknown`), command, args, URL host, env and header
+  key names, source (`config` or `code`), framework, file, line, and `pinned` (true/false for `npx`, `uvx`,
+  `pipx run` and `docker run`, null otherwise). Sources: `mcp.json`, `.mcp.json`, `mcp_config.json` and
+  `claude_desktop_config.json` (top-level `mcpServers` or `servers`), and Python code through one
+  table-driven AST visitor covering `mcp.StdioServerParameters`, `MultiServerMCPClient`, the OpenAI Agents
+  `MCPServerStdio` / `MCPServerSse` / `MCPServerStreamableHttp` / `HostedMCPTool`, the AutoGen
+  `StdioServerParams` / `SseServerParams` / `StreamableHttpServerParams`, and CrewAI adapters.
+  Import aliases are resolved per file.
+- **No values are stored.** Env and header entries are key names only, URLs are reduced to scheme and host,
+  and `args` is an allowlist: flag names, `--flag=<redacted>`, the package or image spec of `npx`, `uvx`,
+  `pipx run` and `docker run`, and docker `-e NAME=<redacted>`. Every other argument (paths, positionals,
+  flag values) is shown as `<arg>`. A command that is not a plain program name is shown as `<redacted>`.
+- **Content-based config detection.** Any `.json` file up to 1 MB that contains `"mcpServers"` is read as an
+  MCP config (the `mcpServers` key only).
+- **Per-server risk evidence.** "MCP server exposes tools without governance controls" now carries
+  `name (transport) file:line` evidence for each server found. With only an MCP import detected, the
+  finding is unchanged. A configured server counts as MCP detected, so a repo with only an MCP config file
+  also gets the finding.
+- **Coverage note.** `summary.mcp_servers_note` states that servers defined in C#, TypeScript or Go
+  source are not extracted per server. The table output gains an "MCP Servers" section.
+- `NOTICE` file: the MCP constructor list was derived from splx-ai/agentic-radar (Apache-2.0).
+
 ## 1.2.0 (2026-07-21)
 
 .NET detection depth.

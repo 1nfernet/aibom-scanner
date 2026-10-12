@@ -149,6 +149,21 @@ def format_table(result: ScanResult) -> str:
             lines.append(f"  {DIM}... and {len(result.detections) - 30} more{RESET}")
         lines.append("")
 
+    # MCP servers (names, hosts and key names only; values are never collected)
+    if result.mcp_servers:
+        lines.append(f"{BOLD}MCP Servers ({len(result.mcp_servers)}){RESET}")
+        lines.append(f"{DIM}{'─' * 70}{RESET}")
+        for s in result.mcp_servers[:15]:
+            target = s.get("url_host") or s.get("command") or ""
+            pin = {True: "pinned", False: "unpinned"}.get(s.get("pinned"), "")
+            loc = f"{s.get('file', '')}:{s.get('line', 0)}"
+            lines.append(f"  {CYAN}{(s.get('name') or '(unnamed)')[:20]:<20}{RESET} {s.get('transport', ''):<8} "
+                         f"{target[:28]:<28} {pin:<8} {DIM}{loc}{RESET}")
+        if len(result.mcp_servers) > 15:
+            lines.append(f"  {DIM}... and {len(result.mcp_servers) - 15} more{RESET}")
+        lines.append(f"  {DIM}{result.summary.get('mcp_servers_note', '')}{RESET}")
+        lines.append("")
+
     # CTA
     lines.append(f"{DIM}{'─' * 70}{RESET}")
     lines.append(f"  {BOLD}Get remediation evidence and compliance reports:{RESET}")
