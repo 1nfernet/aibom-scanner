@@ -35,9 +35,15 @@ class TestSnippets:
         result = scan_directory(_repo(tmp_path))
         assert any(d["provider"] == "anthropic" and d["line_number"] == 2 for d in result.detections)
         assert KEY_SHAPED not in json.dumps(result.detections) and NO_SHAPE not in json.dumps(result.detections)
-        for output in (format_sarif(result), format_table(result)):
+        for output in (format_json(result), format_sarif(result), format_table(result)):
             assert KEY_SHAPED not in output and NO_SHAPE not in output
-        assert NO_SHAPE not in format_json(result)
+
+    def test_secrets_drop_raw_value_but_keep_redacted_value(self, tmp_path):
+        result = scan_directory(_repo(tmp_path))
+        hardcoded = [s for s in result.secrets if s["evidence_type"] == "hardcoded_key"]
+        assert hardcoded and all("raw_value" not in s for s in result.secrets)
+        assert all(s["redacted_value"] and s["redacted_value"] != KEY_SHAPED for s in hardcoded)
+        assert '"raw_value"' not in format_json(result)
 
     def test_env_lookups_are_left_intact(self):
         for line in ('c = anthropic.messages.Client(api_key=os.environ["ANTHROPIC_API_KEY"])',

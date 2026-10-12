@@ -55,6 +55,8 @@ Per-server MCP inventory.
 - **Credential values no longer reach `code_snippet`.** A detection's source line is masked before it is stored:
   key-shaped strings and quoted values assigned to credential-looking names (`api_key="..."`, `token: "..."`)
   become `<redacted>`. Env lookups such as `os.environ["X"]` are untouched.
+- **Hardcoded keys are no longer written to the JSON output.** `secrets[].raw_value` held the full key.
+  Behavior change: `secrets[].raw_value` is no longer part of the JSON output; `redacted_value` remains.
 
 ## 1.2.0 (2026-07-21)
 
