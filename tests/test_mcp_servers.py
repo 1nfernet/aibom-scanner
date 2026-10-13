@@ -6,6 +6,7 @@ import pytest
 
 from aibom_scanner.detectors.mcp_servers import (
     compute_pinned,
+    is_mcp_config_path,
     redact_args,
     scan_mcp_config,
     scan_mcp_python,
@@ -18,6 +19,19 @@ from aibom_scanner.risk_engine import classify_risks, consolidate_risks
 from aibom_scanner.scanner import scan_directory
 
 FAKE = "FAKE-NOT-A-KEY-123456"
+
+
+class TestMcpConfigPath:
+    @pytest.mark.parametrize(
+        ("rel_path", "expected"),
+        [
+            ("配置\\.VSCODE\\MCP.JSON", True),
+            ("", False),
+        ],
+    )
+    def test_unicode_parent_and_empty_path(self, rel_path, expected):
+        assert is_mcp_config_path(rel_path) is expected
+
 
 CONFIG = {
     "mcpServers": {
