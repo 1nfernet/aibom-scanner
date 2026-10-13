@@ -360,3 +360,36 @@ class TestOutput:
 
     def test_empty_repo(self, empty_repo):
         assert scan_directory(empty_repo).mcp_servers == []
+
+
+class TestConfigOnlyRepo:
+    """MCP found only through config is a synthetic provider: provider-wide rules must not fire."""
+
+    def _config_repo(self, tmp_path):
+        _write_config(tmp_path, ".mcp.json", {"mcpServers": {
+            "fs": {"command": "npx", "args": ["-y", "@modelcontextprotocol/server-filesystem", "/data"]},
+            "fetch": {"command": "uvx", "args": ["mcp-server-fetch"]},
+        }})
+        (tmp_path / "main.go").write_text("package main\n")
+
+    def test_config_only_titles(self, tmp_path):
+        self._config_repo(tmp_path)
+        titles = {r["title"] for r in scan_directory(tmp_path).risks}
+        assert titles == {
+            "Agentic AI framework without human oversight controls",
+            "Codebase combines untrusted input, sensitive data access and an action capability",
+            "MCP server launched without a pinned version",
+        }
+
+    def test_config_only_keeps_server_evidence(self, tmp_path):
+        self._config_repo(tmp_path)
+        risks = scan_directory(tmp_path).risks
+        text = json.dumps(risks)
+        assert ".mcp.json" in text
+
+    def test_real_sdk_detection_unchanged(self, tmp_path):
+        self._config_repo(tmp_path)
+        (tmp_path / "app.py").write_text("import mcp\n")
+        titles = {r["title"] for r in scan_directory(tmp_path).risks}
+        assert "AI model usage without governance framework" in titles
+        assert "API keys potentially exposed in source code" in titles

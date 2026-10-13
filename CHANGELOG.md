@@ -24,7 +24,9 @@ Per-server MCP inventory.
 - **Per-server risk evidence.** "MCP server exposes tools without governance controls" now carries
   `name (transport) file:line` evidence for each server found. With only an MCP import detected, the
   finding is unchanged. A configured server counts as MCP detected, so a repo with only an MCP config file
-  also gets the finding.
+  also gets the MCP and agentic-governance findings, the unpinned-server finding and the capability
+  findings. It does not get the provider-wide findings (exposed keys, model governance and so on): those
+  need a real SDK detection.
 - **Coverage note.** `summary.mcp_servers_note` states that servers defined in C#, TypeScript or Go
   source are not extracted per server. The table output gains an "MCP Servers" section.
 - **Tool capability classes.** `tool_capabilities` lists tools with a capability class

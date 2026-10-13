@@ -669,8 +669,14 @@ def classify_risks(
     code_contexts: list[str] = None,
     mcp_servers: list[dict] = None,
     tool_capabilities: list[dict] = None,
+    mcp_config_only: bool = False,
 ) -> list[dict]:
-    """Generate risk findings from detected AI providers and code evidence."""
+    """Generate risk findings from detected AI providers and code evidence.
+
+    mcp_config_only: MCP was found only through config files (no SDK detection at all), so
+    'mcp' is a synthetic provider. Provider-wide rules do not fire from it; rules that
+    name 'mcp' do.
+    """
     risks = []
     num_providers = len(set(detected_providers))
     _code_contexts = code_contexts or []
@@ -680,6 +686,8 @@ def classify_risks(
             continue
 
         rule_providers = rule.get("providers", [])
+        if mcp_config_only and (not rule_providers or "*" in rule_providers):
+            continue
         if rule_providers and "*" not in rule_providers:
             if not any(p in rule_providers for p in detected_providers):
                 continue
