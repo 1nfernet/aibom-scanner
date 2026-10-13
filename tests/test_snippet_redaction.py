@@ -43,6 +43,7 @@ class TestSnippets:
         hardcoded = [s for s in result.secrets if s["evidence_type"] == "hardcoded_key"]
         assert hardcoded and all("raw_value" not in s for s in result.secrets)
         assert all(s["redacted_value"] and s["redacted_value"] != KEY_SHAPED for s in hardcoded)
+        assert all(len(s["redacted_value"]) == 9 for s in hardcoded)  # 4 + "..." + 2
         assert '"raw_value"' not in format_json(result)
 
     def test_env_lookups_are_left_intact(self):

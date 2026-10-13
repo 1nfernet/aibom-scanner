@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.3.0 (2026-10-13)
 
 Per-server MCP inventory.
 
@@ -57,6 +57,8 @@ Per-server MCP inventory.
   become `<redacted>`. Env lookups such as `os.environ["X"]` are untouched.
 - **Hardcoded keys are no longer written to the JSON output.** `secrets[].raw_value` held the full key.
   Behavior change: `secrets[].raw_value` is no longer part of the JSON output; `redacted_value` remains.
+- **`redacted_value` shows less of the key.** It was the first 8 and last 4 characters, which is more than half of
+  the shortest key formats. It is now the first 4 and last 2.
 
 ## 1.2.0 (2026-07-21)
 

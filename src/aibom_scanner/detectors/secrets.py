@@ -104,10 +104,8 @@ def mask_secrets(text: str) -> str:
 
 
 def redact_key(value: str) -> str:
-    """Partially redact a key for display: first 8 + last 4 chars."""
-    if len(value) <= 12:
-        return value[:4] + "..." + value[-2:]
-    return value[:8] + "..." + value[-4:]
+    """Partially redact a key for display: first 4 + last 2 chars."""
+    return value[:4] + "..." + value[-2:]
 
 
 def detect_secrets_management(
