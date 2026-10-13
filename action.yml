@@ -1,5 +1,5 @@
 name: 'AIBOM Scanner'
-description: 'Scan your codebase for AI SDK usage and compliance risks (NIST AI RMF, ISO 42001, EU AI Act)'
+description: 'Scan your codebase for AI SDK usage and compliance risks (NIST AI RMF, ISO 42001, EU AI Act, OWASP LLM and Agentic Top 10)'
 branding:
   icon: 'shield'
   color: 'blue'

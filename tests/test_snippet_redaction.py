@@ -43,6 +43,7 @@ class TestSnippets:
         hardcoded = [s for s in result.secrets if s["evidence_type"] == "hardcoded_key"]
         assert hardcoded and all("raw_value" not in s for s in result.secrets)
         assert all(s["redacted_value"] and s["redacted_value"] != KEY_SHAPED for s in hardcoded)
+        assert all(len(s["redacted_value"]) == 9 for s in hardcoded)  # 4 + "..." + 2
         assert '"raw_value"' not in format_json(result)
 
     def test_env_lookups_are_left_intact(self):
@@ -60,3 +61,35 @@ class TestSnippets:
     def test_evidence_qualifier_keywords_survive(self):
         line = 'resp = anthropic.messages.create(user_input, api_key="' + NO_SHAPE + '")'
         assert "user_input" in mask_secrets(line)
+
+
+class TestMaskingGaps:
+    # Assembled at runtime so no key-shaped literal sits in this file.
+    UNDERSCORE_KEY = "sk-" + "ant-" + "A" * 20 + "_" + "B" * 20
+    PROJ_KEY = "sk-" + "proj-" + "C" * 24 + "-" + "D" * 12
+    FSTRING_VALUE = "plainvalue" + "-xyz-" + "55555"
+
+    def test_underscore_key_is_masked_whole(self):
+        out = mask_secrets(f'client = Client(credentials_blob("{self.UNDERSCORE_KEY}"))')
+        assert out == 'client = Client(credentials_blob("<redacted>"))'
+
+    def test_underscore_key_in_json_detection_snippet(self, tmp_path):
+        (tmp_path / "app.py").write_text(f'import anthropic\nc = anthropic.messages.Client("{self.UNDERSCORE_KEY}")\n')
+        result = scan_directory(tmp_path)
+        text = json.dumps(result.detections)
+        assert "B" * 20 not in text and "_" + "B" * 5 not in text
+        assert any("<redacted>" in d["code_snippet"] for d in result.detections)
+
+    def test_sk_proj_key_masked_including_backtick_string(self):
+        assert self.PROJ_KEY not in mask_secrets(f"see {self.PROJ_KEY} here")
+        out = mask_secrets(f"const c = new Client({{ apiKey: `{self.PROJ_KEY}` }})")
+        assert "CCCC" not in out and "DDDD" not in out and "apiKey: `<redacted>`" in out
+
+    def test_backtick_assignment_to_credential_name(self):
+        out = mask_secrets(f"const apiKey = `{self.FSTRING_VALUE}`;")
+        assert self.FSTRING_VALUE not in out and out == "const apiKey = `<redacted>`;"
+
+    def test_f_string_prefix(self):
+        for prefix in ("f", "rf", "b"):
+            out = mask_secrets(f'client = C(api_key={prefix}"{self.FSTRING_VALUE}")')
+            assert self.FSTRING_VALUE not in out and f'api_key={prefix}"<redacted>"' in out

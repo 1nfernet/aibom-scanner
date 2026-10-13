@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.3.0 (2026-10-13)
 
 Per-server MCP inventory.
 
@@ -24,7 +24,10 @@ Per-server MCP inventory.
 - **Per-server risk evidence.** "MCP server exposes tools without governance controls" now carries
   `name (transport) file:line` evidence for each server found. With only an MCP import detected, the
   finding is unchanged. A configured server counts as MCP detected, so a repo with only an MCP config file
-  also gets the finding.
+  also gets the MCP and agentic-governance findings, the unpinned-server finding and the capability
+  findings, at MEDIUM at most (qualifier `mcp_config_only` where a finding was lowered), so a build that
+  passed on 1.2.0 with the default `high` threshold still passes. It does not get the provider-wide
+  findings (exposed keys, model governance and so on): those need a real SDK detection.
 - **Coverage note.** `summary.mcp_servers_note` states that servers defined in C#, TypeScript or Go
   source are not extracted per server. The table output gains an "MCP Servers" section.
 - **Tool capability classes.** `tool_capabilities` lists tools with a capability class
@@ -35,8 +38,10 @@ Per-server MCP inventory.
 - **New finding (HIGH or MEDIUM):** "Codebase combines untrusted input, sensitive data access and an action
   capability". It fires only from named tools (untrusted content in AND sensitive data access AND external side
   effect or code execution), never from provider detection alone, with a scope line and one evidence line per
-  class. It is HIGH when a single file holds the legs in at least two distinct tools (same client or module), and
-  MEDIUM with qualifier `repository_wide` when they are spread across files. Eleven web search, scrape and browser
+  class. It is HIGH when a single file holds the legs in at least two distinct tools and at least one of them was
+  found in code (a Python import; same module). Servers listed only in an MCP config file give MEDIUM with
+  qualifier `mcp_config`: a config file shows availability to one client, not use. It is MEDIUM with qualifier
+  `repository_wide` when the legs are spread across files. Eleven web search, scrape and browser
   SDK modules (`tavily`, `firecrawl`,
   `playwright` and others) are classed `untrusted_content_in` by import.
 - **OWASP mappings.** Two control tables, "OWASP LLM Top 10 (2025)" (`OWASP-LLM01`..`10`) and "OWASP Agentic Top 10
@@ -52,11 +57,16 @@ Per-server MCP inventory.
 
 ### Fixed
 
-- **Credential values no longer reach `code_snippet`.** A detection's source line is masked before it is stored:
-  key-shaped strings and quoted values assigned to credential-looking names (`api_key="..."`, `token: "..."`)
-  become `<redacted>`. Env lookups such as `os.environ["X"]` are untouched.
+- **`code_snippet` masks key-shaped strings and credential assignments.** A detection's source line is masked
+  before it is stored. Masked: `sk-` tokens of 20 or more characters (including `sk-proj-` and keys with `_`),
+  the other known key shapes, and quoted values (single, double or backtick quotes, optional `f` / `r` / `b`
+  prefix) assigned to credential-looking names (`api_key="..."`, `token: "..."`). They become `<redacted>`.
+  Env lookups such as `os.environ["X"]` are untouched. Not masked: a value passed positionally to a
+  constructor, a value inside a URL (`user:pass@host`) or a header dict value, which can still appear in a snippet.
 - **Hardcoded keys are no longer written to the JSON output.** `secrets[].raw_value` held the full key.
   Behavior change: `secrets[].raw_value` is no longer part of the JSON output; `redacted_value` remains.
+- **`redacted_value` shows less of the key.** It was the first 8 and last 4 characters, which is more than half of
+  the shortest key formats. It is now the first 4 and last 2.
 
 ## 1.2.0 (2026-07-21)
 

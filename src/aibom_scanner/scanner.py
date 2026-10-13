@@ -237,6 +237,7 @@ def scan_directory(path: str | Path) -> ScanResult:
         code_contexts=code_contexts,
         mcp_servers=all_mcp_servers,
         tool_capabilities=all_tool_caps,
+        mcp_config_only=bool(all_mcp_servers) and not providers,
     )
     risks = consolidate_risks(raw_risks)
     set_evidence_basis(risks)

@@ -198,7 +198,8 @@ class TestRule:
             "git": {"command": "uvx", "args": ["mcp-server-git==0.6"]},
         }}))
         (risk,) = _risk(scan_directory(tmp_path))
-        assert risk["severity"] == "high" and risk["evidence"][0].startswith("scope: single file .mcp.json;")
+        assert risk["severity"] == "medium" and risk["evidence_qualifier"] == "mcp_config"
+        assert risk["evidence"][0].startswith("scope: MCP config file .mcp.json lists these servers")
         assert any(".mcp.json:" in e for e in risk["evidence"])
 
     def test_repo_wide_tier_is_medium_and_not_double_downgraded(self, tmp_path):

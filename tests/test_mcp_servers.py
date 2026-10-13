@@ -194,18 +194,18 @@ class TestRedaction:
         assert redact_args(["-c", f"TOKEN={FAKE} npx thing"], "sh") == ["-c", "<arg>"]
 
     @pytest.mark.parametrize(
-        "command,args,expected,pinned",
+        "command,args,expected",
         [
-            ("npx", ["--api-key", "PROBELEAK18", "some-pkg"], ["--api-key", "<arg>", "some-pkg"], False),
-            ("uvx", ["--token", "PROBELEAK19", "tool"], ["--token", "<arg>", "tool"], False),
+            ("npx", ["--api-key", "PROBELEAK18", "some-pkg"], ["--api-key", "<arg>", "<arg>"]),
+            ("uvx", ["--token", "PROBELEAK19", "tool"], ["--token", "<arg>", "<arg>"]),
             ("docker", ["run", "--secret-thing", "PROBELEAK20", "img:1"],
-             ["run", "--secret-thing", "<arg>", "img:1"], True),
-            ("pipx", ["run", "--x", "PROBELEAK22", "pkg"], ["run", "--x", "<arg>", "pkg"], False),
+             ["run", "--secret-thing", "<arg>", "<arg>"]),
+            ("pipx", ["run", "--x", "PROBELEAK22", "pkg"], ["run", "--x", "<arg>", "<arg>"]),
         ],
     )
-    def test_value_after_unknown_flag_is_not_the_spec(self, command, args, expected, pinned):
+    def test_unknown_flag_before_the_package_means_no_spec(self, command, args, expected):
         assert redact_args(args, command) == expected
-        assert compute_pinned(command, args) is pinned
+        assert compute_pinned(command, args) is None
 
     def test_spec_position_rejects_key_value_and_credentialed_urls(self):
         assert redact_args([f"API_TOKEN={FAKE}", "tool"], "uvx") == ["<arg>", "<arg>"]
@@ -360,3 +360,168 @@ class TestOutput:
 
     def test_empty_repo(self, empty_repo):
         assert scan_directory(empty_repo).mcp_servers == []
+
+
+class TestConfigOnlyRepo:
+    """MCP found only through config is a synthetic provider: provider-wide rules must not fire."""
+
+    def _config_repo(self, tmp_path):
+        _write_config(tmp_path, ".mcp.json", {"mcpServers": {
+            "fs": {"command": "npx", "args": ["-y", "@modelcontextprotocol/server-filesystem", "/data"]},
+            "fetch": {"command": "uvx", "args": ["mcp-server-fetch"]},
+        }})
+        (tmp_path / "main.go").write_text("package main\n")
+
+    def test_config_only_titles(self, tmp_path):
+        self._config_repo(tmp_path)
+        titles = {r["title"] for r in scan_directory(tmp_path).risks}
+        assert titles == {
+            "Agentic AI framework without human oversight controls",
+            "Codebase combines untrusted input, sensitive data access and an action capability",
+            "MCP server launched without a pinned version",
+        }
+
+    def test_config_only_keeps_server_evidence(self, tmp_path):
+        self._config_repo(tmp_path)
+        risks = scan_directory(tmp_path).risks
+        text = json.dumps(risks)
+        assert ".mcp.json" in text
+
+    def test_real_sdk_detection_unchanged(self, tmp_path):
+        self._config_repo(tmp_path)
+        (tmp_path / "app.py").write_text("import mcp\n")
+        titles = {r["title"] for r in scan_directory(tmp_path).risks}
+        assert "AI model usage without governance framework" in titles
+        assert "API keys potentially exposed in source code" in titles
+
+
+class TestFailClosedSpec:
+    """An unknown flag before the candidate package means there is no spec: never emit a secret positional."""
+
+    SHAPES = [
+        ("npx", ["--prefer-offline", "@x/server", FAKE]),
+        ("docker", ["run", "-ti", "img:1", FAKE]),
+        ("uvx", ["--refresh", "pkg", FAKE]),
+    ]
+
+    @pytest.mark.parametrize("command,args", SHAPES)
+    def test_redact_and_pinned(self, command, args):
+        out = redact_args(args, command)
+        assert FAKE not in json.dumps(out) and "@x/server" not in out and "img:1" not in out and "pkg" not in out
+        assert compute_pinned(command, args) is None
+
+    def test_config_and_formatters(self, tmp_path):
+        _write_config(tmp_path, ".mcp.json", {"mcpServers": {
+            f"s{i}": {"command": c, "args": a} for i, (c, a) in enumerate(self.SHAPES)}})
+        result = scan_directory(tmp_path)
+        assert len(result.mcp_servers) == 3
+        assert all(s["pinned"] is None for s in result.mcp_servers)
+        for output in (json.dumps(result.mcp_servers), json.dumps(result.risks),
+                       format_json(result), format_sarif(result), format_table(result)):
+            assert FAKE not in output
+
+    def test_python_constructor(self, tmp_path):
+        (tmp_path / "app.py").write_text(
+            "from mcp import StdioServerParameters\n"
+            f"s = StdioServerParameters(command='npx', args=['--prefer-offline', '@x/server', '{FAKE}'])\n"
+        )
+        result = scan_directory(tmp_path)
+        (srv,) = result.mcp_servers
+        assert srv["pinned"] is None and srv["args"] == ["--prefer-offline", "<arg>", "<arg>"]
+        for output in (json.dumps(result.mcp_servers), format_json(result), format_sarif(result), format_table(result)):
+            assert FAKE not in output
+
+    @pytest.mark.parametrize(
+        "command,args,spec,pinned",
+        [
+            ("npx", ["-y", "pkg@1.2.3"], "pkg@1.2.3", True),
+            ("uvx", ["pkg"], "pkg", False),
+            ("docker", ["run", "-i", "--rm", "image:tag"], "image:tag", True),
+            ("docker", ["run", "-e", "K=v", "-v", "/a:/b", "image:tag"], "image:tag", True),
+        ],
+    )
+    def test_known_forms_still_resolve(self, command, args, spec, pinned):
+        assert spec in redact_args(args, command)
+        assert compute_pinned(command, args) is pinned
+
+
+class TestOddInput:
+    """Hostile or odd input must never crash a scan."""
+
+    def test_non_string_args(self, tmp_path):
+        _write_config(tmp_path, ".mcp.json", {"mcpServers": {
+            "a": {"command": "npx", "args": [["-y"], "pkg"]},
+            "b": {"command": "docker", "args": ["run", {"x": 1}, "img:1"], "env": ["x"], "headers": 3},
+            "c": {"command": ["npx"], "url": ["u"], "args": [None, 5]},
+        }})
+        result = scan_directory(tmp_path)
+        assert len(result.mcp_servers) == 3
+        assert result.mcp_servers[0]["args"][0] == "<dynamic>"
+
+    def test_deeply_nested_json(self, tmp_path):
+        depth = 100_000
+        (tmp_path / "deep.json").write_text('{"mcpServers": ' + "[" * depth + "]" * depth + "}")
+        assert scan_directory(tmp_path).mcp_servers == []
+
+    @pytest.mark.parametrize("expr", [
+        " + ".join(["'a'"] * 500),
+        "x" + ".m()" * 200,
+    ], ids=["plus_chain", "call_chain"])
+    def test_deep_expression_in_mcp_python(self, tmp_path, expr):
+        (tmp_path / "app.py").write_text(
+            "from mcp import StdioServerParameters\n"
+            "s = StdioServerParameters(command='uvx', args=['t'])\n"
+            f"y = {expr}\n"
+        )
+        assert scan_directory(tmp_path).summary["files_scanned"] >= 1
+
+    def test_deep_attribute_chain(self, tmp_path):
+        (tmp_path / "app.py").write_text("import langchain_community\nx = a" + ".b" * 1000 + "\n")
+        assert scan_directory(tmp_path).summary["files_scanned"] >= 1
+
+
+class TestConfigEvidenceCap:
+    """Config-file evidence alone never reaches HIGH."""
+
+    RANK = {"low": 1, "medium": 2, "high": 3, "critical": 4}
+    UNTRUSTED = "from crewai_tools import BraveSearchTool\n"
+    SENSITIVE = "from langchain_community.agent_toolkits.sql.toolkit import SQLDatabaseToolkit\n"
+    ACTION = "from langchain_community.tools.ifttt import IFTTTWebhook\n"
+
+    def _config_repo(self, tmp_path):
+        _write_config(tmp_path, ".mcp.json", {"mcpServers": {
+            "fs": {"command": "npx", "args": ["-y", "@modelcontextprotocol/server-filesystem@1.2.3", "/home/x"]},
+            "fetch": {"command": "uvx", "args": ["mcp-server-fetch"]},
+        }})
+        (tmp_path / "main.go").write_text("package main\n")
+
+    def _combined(self, result):
+        return [r for r in result.risks if r["title"].startswith("Codebase combines")]
+
+    def test_config_only_repo_is_medium_at_most_and_exits_zero(self, tmp_path):
+        from aibom_scanner.cli import main
+        self._config_repo(tmp_path)
+        risks = scan_directory(tmp_path).risks
+        assert risks and all(self.RANK[r["severity"]] <= 2 for r in risks)
+        assert all(r["evidence_qualifier"] for r in risks if r["severity"] == "medium" and r["title"].startswith("Agentic"))
+        try:
+            main(["scan", "--path", str(tmp_path), "--severity-threshold", "high"])
+        except SystemExit as exc:
+            assert exc.code in (0, None)
+
+    def test_python_file_with_three_legs_is_still_high(self, tmp_path):
+        (tmp_path / "agent.py").write_text(self.UNTRUSTED + self.SENSITIVE + self.ACTION)
+        (finding,) = self._combined(scan_directory(tmp_path))
+        assert finding["severity"] == "high" and finding["evidence_qualifier"] == ""
+
+    def test_sdk_plus_config_gets_mcp_config_medium_and_other_findings_unchanged(self, tmp_path):
+        (tmp_path / "app.py").write_text("import mcp\n")
+        sdk_only = {(r["title"], r["severity"]) for r in scan_directory(tmp_path).risks}
+        self._config_repo(tmp_path)
+        result = scan_directory(tmp_path)
+        (finding,) = self._combined(result)
+        assert finding["severity"] == "medium" and finding["evidence_qualifier"] == "mcp_config"
+        assert "availability, not use" in " ".join(finding["evidence"])
+        both = {(r["title"], r["severity"]) for r in result.risks}
+        assert sdk_only <= both
+        assert not any(r["evidence_qualifier"] == "mcp_config_only" for r in result.risks)
