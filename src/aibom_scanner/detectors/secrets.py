@@ -87,17 +87,23 @@ HARDCODED_KEY_PATTERNS = [
 ]
 
 
-# A quoted string literal of 8+ characters assigned to a credential-looking name (`api_key="..."`, `"token": "..."`).
+# A quoted string literal of 8+ characters assigned to a credential-looking name (`api_key="..."`, `"token": "..."`),
+# in single, double or backtick quotes, with an optional f / r / b string prefix.
 # Env lookups such as os.environ["API_KEY"] never match: the value must be a quoted literal after `=` or `:`.
 _CREDENTIAL_ASSIGNMENT = re.compile(
-    r"""((?:api[_-]?key|secret|token|password|passwd|authorization|bearer|credential)[\w-]*["']?\s*[=:]\s*)"""
-    r"""(["'])((?:(?!\2).){8,})\2""",
+    r"""((?:api[_-]?key|secret|token|password|passwd|authorization|bearer|credential)[\w-]*["']?\s*[=:]\s*(?:rf|fr|rb|br|f|r|b)?)"""
+    r"""(["'`])((?:(?!\2).){8,})\2""",
     re.IGNORECASE,
 )
 
 
+# Masking only (not detection): any sk- token of 20+ characters, whatever the prefix or separators.
+_BROAD_SK_KEY = re.compile(r"(?<![A-Za-z0-9])sk-[A-Za-z0-9_-]{20,}")
+
+
 def mask_secrets(text: str) -> str:
     """Replace key-shaped strings and quoted credential values with "<redacted>". For text that gets serialized."""
+    text = _BROAD_SK_KEY.sub("<redacted>", text)  # first, so a key with "_" or "-proj-" is masked whole
     for pattern, _provider in HARDCODED_KEY_PATTERNS:
         text = re.sub(pattern, "<redacted>", text)
     return _CREDENTIAL_ASSIGNMENT.sub(r"\1\2<redacted>\2", text)

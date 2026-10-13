@@ -54,9 +54,12 @@ Per-server MCP inventory.
 
 ### Fixed
 
-- **Credential values no longer reach `code_snippet`.** A detection's source line is masked before it is stored:
-  key-shaped strings and quoted values assigned to credential-looking names (`api_key="..."`, `token: "..."`)
-  become `<redacted>`. Env lookups such as `os.environ["X"]` are untouched.
+- **`code_snippet` masks key-shaped strings and credential assignments.** A detection's source line is masked
+  before it is stored. Masked: `sk-` tokens of 20 or more characters (including `sk-proj-` and keys with `_`),
+  the other known key shapes, and quoted values (single, double or backtick quotes, optional `f` / `r` / `b`
+  prefix) assigned to credential-looking names (`api_key="..."`, `token: "..."`). They become `<redacted>`.
+  Env lookups such as `os.environ["X"]` are untouched. Not masked: a value passed positionally to a
+  constructor, a value inside a URL (`user:pass@host`) or a header dict value, which can still appear in a snippet.
 - **Hardcoded keys are no longer written to the JSON output.** `secrets[].raw_value` held the full key.
   Behavior change: `secrets[].raw_value` is no longer part of the JSON output; `redacted_value` remains.
 - **`redacted_value` shows less of the key.** It was the first 8 and last 4 characters, which is more than half of
