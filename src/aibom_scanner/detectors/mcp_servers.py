@@ -155,18 +155,34 @@ _BOOL_FLAGS = {
                "--interactive", "--tty"},
 }
 _SPEC_FLAGS = {"npx": {"-p", "--package"}, "uvx": {"--from"}, "pipx": {"--spec"}}
+# Flags known to take one value. A flag in neither set means the scanner cannot tell where the package
+# is, so there is no spec (fail closed: a secret positional must never be taken for the package).
+_VALUE_FLAGS = {
+    "npx": {"--registry", "--cache", "--userconfig"},
+    "uvx": {"--python", "-p", "--with", "--index-url", "--default-index"},
+    "pipx": {"--python", "--index-url"},
+    "docker": {"-e", "--env", "-v", "--volume", "-p", "--publish", "--name", "-w", "--workdir", "-u",
+               "--user", "--network", "--net", "--entrypoint", "--mount", "-l", "--label", "--env-file",
+               "--platform", "--pull", "-m", "--memory", "--cpus", "--add-host", "--hostname"},
+}
 
 
-def _first_positional(args: list, bool_flags: set[str], start: int = 0) -> int | None:
-    """First argument that is a positional and not the value of a flag (see _BOOL_FLAGS)."""
-    for i in range(start, len(args)):
+def _known_flag(cmd: str, a: str) -> bool:
+    return "=" in a or a in _BOOL_FLAGS[cmd] or a in _VALUE_FLAGS[cmd] or a in _SPEC_FLAGS.get(cmd, ())
+
+
+def _first_positional(args: list, cmd: str, start: int = 0) -> int | None:
+    """First argument that is a positional and not the value of a flag. None when an unknown flag comes first."""
+    bool_flags, value_flags = _BOOL_FLAGS[cmd], _VALUE_FLAGS[cmd] | _SPEC_FLAGS.get(cmd, set())
+    i = start
+    while i < len(args):
         a = args[i]
-        if not isinstance(a, str) or a.startswith("-"):
+        if isinstance(a, str) and a.startswith("-"):
+            if not _known_flag(cmd, a):
+                return None
+            i += 2 if "=" not in a and a in value_flags else 1
             continue
-        prev = args[i - 1] if i > start and isinstance(args[i - 1], str) else None
-        if prev is not None and prev.startswith("-") and "=" not in prev and prev not in bool_flags:
-            continue  # value of a flag
-        return None if a == _DYNAMIC else i
+        return None if a == _DYNAMIC or not isinstance(a, str) else i
     return None
 
 
@@ -193,7 +209,10 @@ def _spec_index(cmd: str, args: list) -> int | None:
             return None
         start = args.index("run") + 1
     explicit = _flag_value(args, _SPEC_FLAGS[cmd]) if cmd in _SPEC_FLAGS else None
-    return explicit if explicit is not None else _first_positional(args, _BOOL_FLAGS[cmd], start)
+    if explicit is None:
+        return _first_positional(args, cmd, start)
+    unknown = any(isinstance(a, str) and a.startswith("-") and not _known_flag(cmd, a) for a in args[start:explicit])
+    return None if unknown else explicit
 
 
 def server_package(server: dict) -> str | None:

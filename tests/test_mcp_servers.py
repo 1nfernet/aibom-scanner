@@ -194,18 +194,18 @@ class TestRedaction:
         assert redact_args(["-c", f"TOKEN={FAKE} npx thing"], "sh") == ["-c", "<arg>"]
 
     @pytest.mark.parametrize(
-        "command,args,expected,pinned",
+        "command,args,expected",
         [
-            ("npx", ["--api-key", "PROBELEAK18", "some-pkg"], ["--api-key", "<arg>", "some-pkg"], False),
-            ("uvx", ["--token", "PROBELEAK19", "tool"], ["--token", "<arg>", "tool"], False),
+            ("npx", ["--api-key", "PROBELEAK18", "some-pkg"], ["--api-key", "<arg>", "<arg>"]),
+            ("uvx", ["--token", "PROBELEAK19", "tool"], ["--token", "<arg>", "<arg>"]),
             ("docker", ["run", "--secret-thing", "PROBELEAK20", "img:1"],
-             ["run", "--secret-thing", "<arg>", "img:1"], True),
-            ("pipx", ["run", "--x", "PROBELEAK22", "pkg"], ["run", "--x", "<arg>", "pkg"], False),
+             ["run", "--secret-thing", "<arg>", "<arg>"]),
+            ("pipx", ["run", "--x", "PROBELEAK22", "pkg"], ["run", "--x", "<arg>", "<arg>"]),
         ],
     )
-    def test_value_after_unknown_flag_is_not_the_spec(self, command, args, expected, pinned):
+    def test_unknown_flag_before_the_package_means_no_spec(self, command, args, expected):
         assert redact_args(args, command) == expected
-        assert compute_pinned(command, args) is pinned
+        assert compute_pinned(command, args) is None
 
     def test_spec_position_rejects_key_value_and_credentialed_urls(self):
         assert redact_args([f"API_TOKEN={FAKE}", "tool"], "uvx") == ["<arg>", "<arg>"]
@@ -393,3 +393,53 @@ class TestConfigOnlyRepo:
         titles = {r["title"] for r in scan_directory(tmp_path).risks}
         assert "AI model usage without governance framework" in titles
         assert "API keys potentially exposed in source code" in titles
+
+
+class TestFailClosedSpec:
+    """An unknown flag before the candidate package means there is no spec: never emit a secret positional."""
+
+    SHAPES = [
+        ("npx", ["--prefer-offline", "@x/server", FAKE]),
+        ("docker", ["run", "-ti", "img:1", FAKE]),
+        ("uvx", ["--refresh", "pkg", FAKE]),
+    ]
+
+    @pytest.mark.parametrize("command,args", SHAPES)
+    def test_redact_and_pinned(self, command, args):
+        out = redact_args(args, command)
+        assert FAKE not in json.dumps(out) and "@x/server" not in out and "img:1" not in out and "pkg" not in out
+        assert compute_pinned(command, args) is None
+
+    def test_config_and_formatters(self, tmp_path):
+        _write_config(tmp_path, ".mcp.json", {"mcpServers": {
+            f"s{i}": {"command": c, "args": a} for i, (c, a) in enumerate(self.SHAPES)}})
+        result = scan_directory(tmp_path)
+        assert len(result.mcp_servers) == 3
+        assert all(s["pinned"] is None for s in result.mcp_servers)
+        for output in (json.dumps(result.mcp_servers), json.dumps(result.risks),
+                       format_json(result), format_sarif(result), format_table(result)):
+            assert FAKE not in output
+
+    def test_python_constructor(self, tmp_path):
+        (tmp_path / "app.py").write_text(
+            "from mcp import StdioServerParameters\n"
+            f"s = StdioServerParameters(command='npx', args=['--prefer-offline', '@x/server', '{FAKE}'])\n"
+        )
+        result = scan_directory(tmp_path)
+        (srv,) = result.mcp_servers
+        assert srv["pinned"] is None and srv["args"] == ["--prefer-offline", "<arg>", "<arg>"]
+        for output in (json.dumps(result.mcp_servers), format_json(result), format_sarif(result), format_table(result)):
+            assert FAKE not in output
+
+    @pytest.mark.parametrize(
+        "command,args,spec,pinned",
+        [
+            ("npx", ["-y", "pkg@1.2.3"], "pkg@1.2.3", True),
+            ("uvx", ["pkg"], "pkg", False),
+            ("docker", ["run", "-i", "--rm", "image:tag"], "image:tag", True),
+            ("docker", ["run", "-e", "K=v", "-v", "/a:/b", "image:tag"], "image:tag", True),
+        ],
+    )
+    def test_known_forms_still_resolve(self, command, args, spec, pinned):
+        assert spec in redact_args(args, command)
+        assert compute_pinned(command, args) is pinned
