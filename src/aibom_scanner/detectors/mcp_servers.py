@@ -269,7 +269,7 @@ def compute_pinned(command: str | None, args: list) -> bool | None:
 def _record(
     *, name, transport, command, args, url, env_keys, header_keys, source, framework, file, line,
 ) -> dict:
-    args = list(args or [])
+    args = [a if isinstance(a, str) else _DYNAMIC for a in (args or [])]
     command = command if isinstance(command, str) else None
     safe_command = (
         command is not None and bool(_COMMAND.match(command)) and "://" not in command and "@" not in command
@@ -321,7 +321,7 @@ def scan_mcp_config(rel_path: str, content: str, keys: tuple[str, ...] = MCP_CON
     """Extract servers from an MCP client config file. Malformed JSON returns []."""
     try:
         data = json.loads(content)
-    except ValueError:
+    except (ValueError, RecursionError):
         return []
     if not isinstance(data, dict):
         return []
@@ -519,10 +519,13 @@ def scan_mcp_python(rel_path: str, content: str) -> list[dict]:
         return []
     try:
         tree = ast.parse(content)
-    except (SyntaxError, ValueError, RecursionError):
+    except (SyntaxError, ValueError, RecursionError, MemoryError):
         return []
     visitor = _McpVisitor(rel_path)
-    visitor.visit(tree)
+    try:
+        visitor.visit(tree)
+    except RecursionError:
+        return []
     return visitor.servers
 
 

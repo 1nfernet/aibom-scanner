@@ -443,3 +443,38 @@ class TestFailClosedSpec:
     def test_known_forms_still_resolve(self, command, args, spec, pinned):
         assert spec in redact_args(args, command)
         assert compute_pinned(command, args) is pinned
+
+
+class TestOddInput:
+    """Hostile or odd input must never crash a scan."""
+
+    def test_non_string_args(self, tmp_path):
+        _write_config(tmp_path, ".mcp.json", {"mcpServers": {
+            "a": {"command": "npx", "args": [["-y"], "pkg"]},
+            "b": {"command": "docker", "args": ["run", {"x": 1}, "img:1"], "env": ["x"], "headers": 3},
+            "c": {"command": ["npx"], "url": ["u"], "args": [None, 5]},
+        }})
+        result = scan_directory(tmp_path)
+        assert len(result.mcp_servers) == 3
+        assert result.mcp_servers[0]["args"][0] == "<dynamic>"
+
+    def test_deeply_nested_json(self, tmp_path):
+        depth = 100_000
+        (tmp_path / "deep.json").write_text('{"mcpServers": ' + "[" * depth + "]" * depth + "}")
+        assert scan_directory(tmp_path).mcp_servers == []
+
+    @pytest.mark.parametrize("expr", [
+        " + ".join(["'a'"] * 500),
+        "x" + ".m()" * 200,
+    ], ids=["plus_chain", "call_chain"])
+    def test_deep_expression_in_mcp_python(self, tmp_path, expr):
+        (tmp_path / "app.py").write_text(
+            "from mcp import StdioServerParameters\n"
+            "s = StdioServerParameters(command='uvx', args=['t'])\n"
+            f"y = {expr}\n"
+        )
+        assert scan_directory(tmp_path).summary["files_scanned"] >= 1
+
+    def test_deep_attribute_chain(self, tmp_path):
+        (tmp_path / "app.py").write_text("import langchain_community\nx = a" + ".b" * 1000 + "\n")
+        assert scan_directory(tmp_path).summary["files_scanned"] >= 1

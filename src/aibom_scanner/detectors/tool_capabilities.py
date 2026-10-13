@@ -55,7 +55,7 @@ def scan_tool_imports(rel_path: str, content: str) -> list[dict]:
         return []
     try:
         tree = ast.parse(content)
-    except (SyntaxError, ValueError, RecursionError):
+    except (SyntaxError, ValueError, RecursionError, MemoryError):
         return []
     imports: dict[str, str] = {}
     found: dict = {}
@@ -80,22 +80,25 @@ def scan_tool_imports(rel_path: str, content: str) -> list[dict]:
                 "tool": root, "classes": list(modules[root]), "source": "import", "file": rel_path, "line": line,
             }
 
-    for node in ast.walk(tree):
-        if isinstance(node, ast.Import):
-            for a in node.names:
-                record_module(a.name, node.lineno)
-                imports[a.asname or a.name.split(".")[0]] = a.name if a.asname else a.name.split(".")[0]
-                record(a.name, node.lineno)
-        elif isinstance(node, ast.ImportFrom) and node.module and not node.level:
-            record_module(node.module, node.lineno)
-            for a in node.names:
-                imports[a.asname or a.name] = f"{node.module}.{a.name}"
-                record(f"{node.module}.{a.name}", node.lineno)
-    for node in ast.walk(tree):
-        if isinstance(node, ast.Attribute):
-            fq = resolve(node)
-            if fq:
-                record(fq, node.lineno)
+    try:
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Import):
+                for a in node.names:
+                    record_module(a.name, node.lineno)
+                    imports[a.asname or a.name.split(".")[0]] = a.name if a.asname else a.name.split(".")[0]
+                    record(a.name, node.lineno)
+            elif isinstance(node, ast.ImportFrom) and node.module and not node.level:
+                record_module(node.module, node.lineno)
+                for a in node.names:
+                    imports[a.asname or a.name] = f"{node.module}.{a.name}"
+                    record(f"{node.module}.{a.name}", node.lineno)
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Attribute):
+                fq = resolve(node)
+                if fq:
+                    record(fq, node.lineno)
+    except RecursionError:
+        return []
     return list(found.values())
 
 
