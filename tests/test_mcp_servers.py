@@ -478,3 +478,50 @@ class TestOddInput:
     def test_deep_attribute_chain(self, tmp_path):
         (tmp_path / "app.py").write_text("import langchain_community\nx = a" + ".b" * 1000 + "\n")
         assert scan_directory(tmp_path).summary["files_scanned"] >= 1
+
+
+class TestConfigEvidenceCap:
+    """Config-file evidence alone never reaches HIGH."""
+
+    RANK = {"low": 1, "medium": 2, "high": 3, "critical": 4}
+    UNTRUSTED = "from crewai_tools import BraveSearchTool\n"
+    SENSITIVE = "from langchain_community.agent_toolkits.sql.toolkit import SQLDatabaseToolkit\n"
+    ACTION = "from langchain_community.tools.ifttt import IFTTTWebhook\n"
+
+    def _config_repo(self, tmp_path):
+        _write_config(tmp_path, ".mcp.json", {"mcpServers": {
+            "fs": {"command": "npx", "args": ["-y", "@modelcontextprotocol/server-filesystem@1.2.3", "/home/x"]},
+            "fetch": {"command": "uvx", "args": ["mcp-server-fetch"]},
+        }})
+        (tmp_path / "main.go").write_text("package main\n")
+
+    def _combined(self, result):
+        return [r for r in result.risks if r["title"].startswith("Codebase combines")]
+
+    def test_config_only_repo_is_medium_at_most_and_exits_zero(self, tmp_path):
+        from aibom_scanner.cli import main
+        self._config_repo(tmp_path)
+        risks = scan_directory(tmp_path).risks
+        assert risks and all(self.RANK[r["severity"]] <= 2 for r in risks)
+        assert all(r["evidence_qualifier"] for r in risks if r["severity"] == "medium" and r["title"].startswith("Agentic"))
+        try:
+            main(["scan", "--path", str(tmp_path), "--severity-threshold", "high"])
+        except SystemExit as exc:
+            assert exc.code in (0, None)
+
+    def test_python_file_with_three_legs_is_still_high(self, tmp_path):
+        (tmp_path / "agent.py").write_text(self.UNTRUSTED + self.SENSITIVE + self.ACTION)
+        (finding,) = self._combined(scan_directory(tmp_path))
+        assert finding["severity"] == "high" and finding["evidence_qualifier"] == ""
+
+    def test_sdk_plus_config_gets_mcp_config_medium_and_other_findings_unchanged(self, tmp_path):
+        (tmp_path / "app.py").write_text("import mcp\n")
+        sdk_only = {(r["title"], r["severity"]) for r in scan_directory(tmp_path).risks}
+        self._config_repo(tmp_path)
+        result = scan_directory(tmp_path)
+        (finding,) = self._combined(result)
+        assert finding["severity"] == "medium" and finding["evidence_qualifier"] == "mcp_config"
+        assert "availability, not use" in " ".join(finding["evidence"])
+        both = {(r["title"], r["severity"]) for r in result.risks}
+        assert sdk_only <= both
+        assert not any(r["evidence_qualifier"] == "mcp_config_only" for r in result.risks)

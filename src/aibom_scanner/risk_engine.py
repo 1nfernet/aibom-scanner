@@ -561,9 +561,11 @@ def _legs_evidence(by_class: dict[str, list[dict]]) -> list[str]:
 def _capability_risk(tool_capabilities: list[dict]) -> dict | None:
     """Evidence-based rule: untrusted_content_in AND sensitive_data_access AND (external_side_effect OR code_execution).
 
-    HIGH when one file (an MCP config or a Python module) holds the legs in at least two distinct tools: those tools
-    are available to the same client or module. Otherwise MEDIUM with qualifier "repository_wide": the legs exist in
-    the codebase but may belong to different agents. Fires from named tools only, never from provider detection.
+    HIGH when one file holds the legs in at least two distinct tools and at least one of them was found in code
+    (source "import"): those tools are available to the same module. A file that qualifies only through MCP servers
+    listed in a config file gives MEDIUM with qualifier "mcp_config": a config file shows availability to one client,
+    not use. An import-qualifying file wins over a config-only one. Otherwise MEDIUM with qualifier
+    "repository_wide": the legs exist in the codebase but may belong to different agents. Fires from named tools only, never from provider detection.
     Not in RISK_RULES because it needs tool evidence. The finding is appended after the RISK_RULES loop, so the
     qualifier does not pass through _SEVERITY_DOWNGRADE (MEDIUM is final).
     """
@@ -574,9 +576,18 @@ def _capability_risk(tool_capabilities: list[dict]) -> dict | None:
         f for f in sorted(by_file)
         if _legs_met(_by_class(by_file[f])) and len({t["tool"] for t in by_file[f]}) >= 2
     ]
+    in_code = [f for f in qualifying if any(t.get("source") == "import" for t in by_file[f])]
     if qualifying:
-        severity, qualifier = Severity.HIGH, ""
-        evidence = [f"scope: single file {qualifying[0]}; these tools are available to the same client or module"]
+        if in_code:
+            severity, qualifier = Severity.HIGH, ""
+            qualifying = in_code
+            evidence = [f"scope: single file {qualifying[0]}; these tools are available to the same client or module"]
+        else:
+            severity, qualifier = Severity.MEDIUM, "mcp_config"
+            evidence = [
+                f"scope: MCP config file {qualifying[0]} lists these servers for one client; "
+                "a config file shows availability, not use"
+            ]
         evidence += _legs_evidence(_by_class(by_file[qualifying[0]]))
         if len(qualifying) > 1:
             evidence.append(f"also: {len(qualifying) - 1} more file(s) qualify")
@@ -726,6 +737,13 @@ def classify_risks(
 
     if secrets_management is not None:
         _adjust_credential_risk(risks, secrets_management)
+
+    if mcp_config_only:
+        # config-file evidence shows which servers a client can reach, not that the application runs an agent
+        for r in risks:
+            if _severity_rank(r["severity"]) > _severity_rank(Severity.MEDIUM):
+                r["severity"] = Severity.MEDIUM
+                r["evidence_qualifier"] = r.get("evidence_qualifier") or "mcp_config_only"
 
     return risks
 

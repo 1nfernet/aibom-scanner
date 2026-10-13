@@ -25,8 +25,9 @@ Per-server MCP inventory.
   `name (transport) file:line` evidence for each server found. With only an MCP import detected, the
   finding is unchanged. A configured server counts as MCP detected, so a repo with only an MCP config file
   also gets the MCP and agentic-governance findings, the unpinned-server finding and the capability
-  findings. It does not get the provider-wide findings (exposed keys, model governance and so on): those
-  need a real SDK detection.
+  findings, at MEDIUM at most (qualifier `mcp_config_only` where a finding was lowered), so a build that
+  passed on 1.2.0 with the default `high` threshold still passes. It does not get the provider-wide
+  findings (exposed keys, model governance and so on): those need a real SDK detection.
 - **Coverage note.** `summary.mcp_servers_note` states that servers defined in C#, TypeScript or Go
   source are not extracted per server. The table output gains an "MCP Servers" section.
 - **Tool capability classes.** `tool_capabilities` lists tools with a capability class
@@ -37,8 +38,10 @@ Per-server MCP inventory.
 - **New finding (HIGH or MEDIUM):** "Codebase combines untrusted input, sensitive data access and an action
   capability". It fires only from named tools (untrusted content in AND sensitive data access AND external side
   effect or code execution), never from provider detection alone, with a scope line and one evidence line per
-  class. It is HIGH when a single file holds the legs in at least two distinct tools (same client or module), and
-  MEDIUM with qualifier `repository_wide` when they are spread across files. Eleven web search, scrape and browser
+  class. It is HIGH when a single file holds the legs in at least two distinct tools and at least one of them was
+  found in code (a Python import; same module). Servers listed only in an MCP config file give MEDIUM with
+  qualifier `mcp_config`: a config file shows availability to one client, not use. It is MEDIUM with qualifier
+  `repository_wide` when the legs are spread across files. Eleven web search, scrape and browser
   SDK modules (`tavily`, `firecrawl`,
   `playwright` and others) are classed `untrusted_content_in` by import.
 - **OWASP mappings.** Two control tables, "OWASP LLM Top 10 (2025)" (`OWASP-LLM01`..`10`) and "OWASP Agentic Top 10

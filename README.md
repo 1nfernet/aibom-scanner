@@ -108,8 +108,9 @@ by import against a table of about 500 LangChain and CrewAI tools. MCP servers a
 (version stripped) is in a short table; others get no class and are never guessed from their name. A codebase that holds
 untrusted input, sensitive data access and an action capability (external side effect or code execution) gets the HIGH
 finding "Codebase combines untrusted input, sensitive data access and an action capability", with the tools as evidence.
-It is HIGH when one file (an MCP config or a Python module) holds the three legs in at least two distinct tools, because those
-tools are available to the same client or module. It is MEDIUM when the legs are spread across files, because they may
+It is HIGH when one Python module holds the three legs in at least two distinct tools (at least one found by import),
+because those tools are available to the same module. Servers listed only in an MCP config file give MEDIUM: a config
+file shows availability, not use. It is also MEDIUM when the legs are spread across files, because they may
 belong to different agents. A short list of web search, scrape and browser
 SDKs (for example `tavily`, `firecrawl`, `playwright`) also counts as `untrusted_content_in`, matched by import.
 Tools that are not in the tables are not classified.
